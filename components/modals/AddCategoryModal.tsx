@@ -15,7 +15,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-24 animate-fade-in overflow-y-auto">
       <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="font-bold text-gray-800 flex items-center gap-2">
