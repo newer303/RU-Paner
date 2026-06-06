@@ -212,14 +212,17 @@ export function useAppData() {
         });
       }
 
-      if (!res.ok) throw new Error('Failed to save event');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || 'Failed to save event');
+      }
 
       await loadAllData();
       setIsEventModalOpen(false);
       showToast(eventFormData.id ? `อัปเดต "${eventFormData.title}" เรียบร้อยแล้ว` : `เพิ่ม "${eventFormData.title}" เรียบร้อยแล้ว`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      showToast(`เกิดข้อผิดพลาด: ${error.message}`);
     }
   };
 

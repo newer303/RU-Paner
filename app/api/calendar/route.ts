@@ -44,7 +44,10 @@ export async function POST(request: Request) {
       .select('id')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return NextResponse.json({ error: 'Failed to save to database', details: error.message }, { status: 500 });
+    }
 
     if (sendNotify) {
       const baseUrl = new URL(request.url).origin;
@@ -56,9 +59,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ id: data.id });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
+  } catch (error: any) {
+    console.error('API POST error:', error);
+    return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
   }
 }
 
@@ -80,7 +83,10 @@ export async function PUT(request: Request) {
       .eq('id', id)
       .eq('user_id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase update error:', error);
+      return NextResponse.json({ error: 'Failed to update database', details: error.message }, { status: 500 });
+    }
 
     if (sendNotify) {
       const baseUrl = new URL(request.url).origin;
@@ -92,9 +98,9 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
+  } catch (error: any) {
+    console.error('API PUT error:', error);
+    return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
   }
 }
 
