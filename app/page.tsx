@@ -134,6 +134,7 @@ export default function App() {
               totalCompletedCredits={totalCompletedCredits}
               gpax={gpax}
               onNavigate={setActiveTab}
+              userName={session?.user?.name || ''}
             />
           )}
 

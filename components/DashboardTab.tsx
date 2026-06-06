@@ -11,6 +11,7 @@ interface DashboardTabProps {
   totalCompletedCredits: number;
   gpax: string;
   onNavigate: (tab: string) => void;
+  userName?: string;
 }
 
 export const DashboardTab = ({
@@ -19,7 +20,8 @@ export const DashboardTab = ({
   calendarEvents,
   totalCompletedCredits,
   gpax,
-  onNavigate
+  onNavigate,
+  userName
 }: DashboardTabProps) => {
   
   const progressPercent = useMemo(() => {
@@ -47,7 +49,7 @@ export const DashboardTab = ({
     <div className="animate-fade-in space-y-6">
       {/* Welcome Header */}
       <div className="bg-blue-600 dark:bg-blue-700 rounded-2xl p-6 text-white shadow-md">
-        <h2 className="text-xl md:text-2xl font-bold mb-1">สวัสดีปีการศึกษาใหม่! 👋</h2>
+        <h2 className="text-xl md:text-2xl font-bold mb-1 uppercase">Welcome, {userName || 'Student'} 👋</h2>
         <p className="text-blue-100 dark:text-blue-50 text-sm mb-4">มาเริ่มวางแผนการเรียนให้มีประสิทธิภาพกันเถอะ</p>
         <div className="flex gap-4">
           <div className="bg-white/10 dark:bg-black/20 rounded-xl px-4 py-2 border border-white/10 dark:border-white/5">
