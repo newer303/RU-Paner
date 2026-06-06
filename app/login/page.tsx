@@ -9,6 +9,7 @@ import { LogIn, Mail, Lock, Loader2, AlertCircle, BookMarked } from 'lucide-reac
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -107,6 +108,22 @@ export default function LoginPage() {
                 />
               </div>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <input
+                id="remember"
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <label htmlFor="remember" className="text-sm font-medium text-gray-600 dark:text-zinc-400 cursor-pointer">
+                จดจำฉันไว้ในระบบ
+              </label>
+            </div>
+            {/* You can add "Forgot Password?" link here later if needed */}
           </div>
 
           <button
