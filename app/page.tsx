@@ -3,6 +3,7 @@
 import React from 'react';
 import { getCalendarIcon } from '@/lib/utils';
 import { NavButton } from '@/components/NavButton';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Calendar, BookMarked, Bell, LayoutDashboard, List, CalendarDays,
   Smartphone, AlertCircle, CheckCircle
@@ -59,20 +60,23 @@ export default function App() {
   } = useAppData();
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 font-sans text-gray-800 dark:text-zinc-200 transition-colors duration-300">
+      <header className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-1.5 md:p-2 rounded-lg shadow-sm">
               <BookMarked className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">RU Planner</h1>
-              <p className="hidden md:block text-xs text-gray-500">ระบบจัดการตารางเรียนและหลักสูตร ม.รามคำแหง</p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-tight">RU Planner</h1>
+              <p className="hidden md:block text-xs text-gray-500 dark:text-zinc-400">ระบบจัดการตารางเรียนและหลักสูตร ม.รามคำแหง</p>
             </div>
           </div>
-          <div className="md:hidden">
-            <Bell size={20} className="text-gray-400" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <div className="md:hidden">
+              <Bell size={20} className="text-gray-400 dark:text-zinc-500" />
+            </div>
           </div>
         </div>
       </header>
@@ -91,7 +95,7 @@ export default function App() {
 
         <section className="flex-1 min-w-0 pb-24 md:pb-0">
           {activeTab === 'home' && (
-            <DashboardTab 
+            <DashboardTab
               degreePlan={degreePlan}
               selectedCourses={selectedCourses}
               calendarEvents={calendarEvents}
@@ -154,56 +158,56 @@ export default function App() {
           {activeTab === 'notify' && (
             <div className="animate-fade-in max-w-xl mx-auto md:mx-0">
               <div className="mb-8">
-                <h2 className="text-xl md:text-2xl font-bold mb-1 text-gray-800 flex items-center gap-2">
+                <h2 className="text-xl md:text-2xl font-bold mb-1 text-gray-800 dark:text-zinc-100 flex items-center gap-2">
                   <Bell className="text-blue-600" size={24} /> ตั้งค่าแจ้งเตือน
                 </h2>
-                <p className="text-gray-500 text-sm">รับการแจ้งเตือนวันสอบและวันสำคัญ</p>
+                <p className="text-gray-500 dark:text-zinc-400 text-sm">รับการแจ้งเตือนวันสอบและวันสำคัญ</p>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-5">
-                  <div className="bg-[#00B900] p-3 rounded-xl shadow-lg shadow-green-50">
+                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex items-start gap-5">
+                  <div className="bg-[#00B900] p-3 rounded-xl shadow-lg shadow-green-50 dark:shadow-none">
                     <Smartphone className="text-white" size={24} />
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="font-bold text-gray-900 mb-0.5">LINE แจ้งเตือน</h3>
-                        <p className="text-[13px] text-gray-400">รับข้อความแจ้งเตือนผ่าน LINE Notify</p>
+                        <h3 className="font-bold text-gray-900 dark:text-zinc-100 mb-0.5">LINE แจ้งเตือน</h3>
+                        <p className="text-[13px] text-gray-400 dark:text-zinc-500">รับข้อความแจ้งเตือนผ่าน LINE Notify</p>
                       </div>
                       <button
                         onClick={() => updateSetting('notifyLine', !notifyLine)}
-                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${notifyLine ? 'bg-[#00B900]' : 'bg-gray-200'}`}
+                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${notifyLine ? 'bg-[#00B900]' : 'bg-gray-200 dark:bg-zinc-700'}`}
                       >
                         <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${notifyLine ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
                     {notifyLine && (
                       <div className="mt-4 animate-fade-in">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">LINE Notify Token</label>
-                        <input 
+                        <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">LINE Notify Token</label>
+                        <input
                           type="password"
                           value={lineToken}
                           onChange={(e) => updateSetting('lineToken', e.target.value)}
                           placeholder="วาง Token ที่นี่..."
-                          className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                          className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-green-500 transition-all text-gray-900 dark:text-zinc-100"
                         />
-                        <p className="mt-2 text-[10px] text-gray-400 leading-relaxed">คุณสามารถขอ Token ได้ที่ <a href="https://notify-bot.line.me/" target="_blank" rel="noreferrer" className="text-blue-500 underline">notify-bot.line.me</a></p>
+                        <p className="mt-2 text-[10px] text-gray-400 dark:text-zinc-500 leading-relaxed">คุณสามารถขอ Token ได้ที่ <a href="https://notify-bot.line.me/" target="_blank" rel="noreferrer" className="text-blue-500 underline">notify-bot.line.me</a></p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-5">
-                  <div className="bg-gray-900 p-3 rounded-xl shadow-lg shadow-gray-100">
+                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex items-start gap-5">
+                  <div className="bg-gray-900 dark:bg-zinc-800 p-3 rounded-xl shadow-lg shadow-gray-100 dark:shadow-none">
                     <AlertCircle className="text-white" size={24} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 mb-0.5">Email แจ้งเตือน</h3>
-                    <p className="text-[13px] text-gray-400 mb-4">รับสรุปตารางสอบผ่านทางอีเมล</p>
+                    <h3 className="font-bold text-gray-900 dark:text-zinc-100 mb-0.5">Email แจ้งเตือน</h3>
+                    <p className="text-[13px] text-gray-400 dark:text-zinc-500 mb-4">รับสรุปตารางสอบผ่านทางอีเมล</p>
                     <button
                       onClick={() => updateSetting('notifyEmail', !notifyEmail)}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${notifyEmail ? 'bg-blue-600' : 'bg-gray-200'}`}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${notifyEmail ? 'bg-blue-600' : 'bg-gray-200 dark:bg-zinc-700'}`}
                     >
                       <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${notifyEmail ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
@@ -215,7 +219,7 @@ export default function App() {
         </section>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 px-2 py-3 flex justify-around items-center z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-gray-100 dark:border-zinc-800 px-2 py-3 flex justify-around items-center z-50">
         <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="หน้าแรก" />
         <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="ปฏิทิน" />
         <NavButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookMarked size={20} />} label="วิชา" />
@@ -225,50 +229,50 @@ export default function App() {
       </nav>
 
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-gray-900/90 backdrop-blur-sm text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in flex items-center gap-3">
+        <div className="fixed bottom-4 right-4 bg-gray-900/90 dark:bg-zinc-800/90 backdrop-blur-sm text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in flex items-center gap-3">
           <CheckCircle size={20} className="text-green-400" />
           <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       )}
 
       {/* Modals */}
-      <EventModal 
-        isOpen={isEventModalOpen} 
-        onClose={() => setIsEventModalOpen(false)} 
-        formData={eventFormData} 
-        setFormData={setEventFormData} 
-        onSave={handleSaveEvent} 
+      <EventModal
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+        formData={eventFormData}
+        setFormData={setEventFormData}
+        onSave={handleSaveEvent}
       />
 
-      <DeleteConfirmModal 
-        isOpen={!!confirmDeleteId} 
-        onClose={() => setConfirmDeleteId(null)} 
-        onConfirm={handleDeleteEvent} 
+      <DeleteConfirmModal
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={handleDeleteEvent}
       />
 
-      <AddCourseModal 
-        isOpen={isAddCourseModalOpen} 
-        onClose={() => setIsAddCourseModalOpen(false)} 
-        searchQuery={courseSearchQuery} 
-        setSearchQuery={setCourseSearchQuery} 
-        searchResults={degreeSearchResults} 
-        onAddCourse={confirmAddCourseToCategory} 
+      <AddCourseModal
+        isOpen={isAddCourseModalOpen}
+        onClose={() => setIsAddCourseModalOpen(false)}
+        searchQuery={courseSearchQuery}
+        setSearchQuery={setCourseSearchQuery}
+        searchResults={degreeSearchResults}
+        onAddCourse={confirmAddCourseToCategory}
       />
 
-      <AddCategoryModal 
-        isOpen={isAddCategoryModalOpen} 
-        onClose={closeAddCategoryModal} 
-        categoryName={newCategoryName} 
-        setCategoryName={setNewCategoryName} 
-        onConfirm={confirmAddCategory} 
+      <AddCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        onClose={closeAddCategoryModal}
+        categoryName={newCategoryName}
+        setCategoryName={setNewCategoryName}
+        onConfirm={confirmAddCategory}
       />
 
-      <ManualCourseModal 
-        isOpen={isManualCourseModalOpen} 
-        onClose={() => setIsManualCourseModalOpen(false)} 
-        formData={manualCourseData} 
-        setFormData={setManualCourseData} 
-        onSave={handleSaveManualCourse} 
+      <ManualCourseModal
+        isOpen={isManualCourseModalOpen}
+        onClose={() => setIsManualCourseModalOpen(false)}
+        formData={manualCourseData}
+        setFormData={setManualCourseData}
+        onSave={handleSaveManualCourse}
       />
 
       <style dangerouslySetInnerHTML={{

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "RU Planner",
@@ -29,9 +30,17 @@ export default function RootLayout({
     <html
       lang="th"
       className="h-full antialiased"
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-gray-50 font-sans">
-        <main className="min-h-full">{children}</main>
+      <body className="min-h-full font-sans">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <main className="min-h-full">{children}</main>
+        </ThemeProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -94,60 +94,60 @@ export const DegreePlanTab = ({
     <div className="animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold mb-1 text-gray-800 flex items-center gap-2">
-            <List className="text-blue-600" size={24} /> เช็คหลักสูตร
+          <h2 className="text-xl md:text-2xl font-bold mb-1 text-gray-800 dark:text-zinc-100 flex items-center gap-2">
+            <List className="text-blue-600 dark:text-blue-500" size={24} /> เช็คหลักสูตร
           </h2>
           {isDegreeEditMode ? (
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-gray-500">โครงสร้างหลักสูตร</span>
+              <span className="text-sm text-gray-500 dark:text-zinc-400">โครงสร้างหลักสูตร</span>
               <input
                 type="text"
                 value={editedMajor}
                 onChange={(e) => setEditedMajor(e.target.value)}
-                className="text-sm border-b border-blue-400 focus:outline-none focus:border-blue-600 px-1 py-0 bg-transparent font-bold text-gray-800"
+                className="text-sm border-b border-blue-400 focus:outline-none focus:border-blue-600 px-1 py-0 bg-transparent font-bold text-gray-800 dark:text-zinc-200"
                 placeholder="ชื่อหลักสูตร"
               />
             </div>
           ) : (
-            <p className="text-gray-500 text-sm">โครงสร้างหลักสูตร {degreePlan.major}</p>
+            <p className="text-gray-500 dark:text-zinc-400 text-sm">โครงสร้างหลักสูตร {degreePlan.major}</p>
           )}
         </div>
         <button
           onClick={handleToggleEditMode}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${isDegreeEditMode ? 'bg-orange-500 text-white shadow-orange-200 shadow-lg' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${isDegreeEditMode ? 'bg-orange-500 text-white shadow-orange-200 shadow-lg' : 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'}`}
         >
           {isDegreeEditMode ? 'บันทึกการแก้ไข' : 'แก้ไขหลักสูตร'}
         </button>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
+      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 mb-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 dark:bg-blue-500"></div>
         <div className="flex justify-between items-end mb-4">
           <div>
-            <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">ความคืบหน้าโดยรวม</span>
+            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ความคืบหน้าโดยรวม</span>
             {isDegreeEditMode ? (
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-gray-900">{totalCompletedCredits}</span>
-                <span className="text-sm font-bold text-gray-400">/ </span>
+                <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}</span>
+                <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">/ </span>
                 <input
                   type="number"
                   value={editedTotalCredits}
                   onChange={(e) => setEditedTotalCredits(parseInt(e.target.value) || 0)}
-                  className="w-16 text-sm font-bold text-blue-600 border-b border-blue-300 focus:outline-none focus:border-blue-600 bg-transparent"
+                  className="w-16 text-sm font-bold text-blue-600 dark:text-blue-400 border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600 bg-transparent"
                 />
-                <span className="text-sm font-bold text-gray-400">นก.</span>
+                <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">นก.</span>
               </div>
             ) : (
-              <span className="text-3xl font-black text-gray-900">{totalCompletedCredits}<span className="text-sm font-bold text-gray-400 ml-1">/ {degreePlan.totalCredits} นก.</span></span>
+              <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}<span className="text-sm font-bold text-gray-400 dark:text-zinc-500 ml-1">/ {degreePlan.totalCredits} นก.</span></span>
             )}
           </div>
-          <span className="text-2xl font-black text-blue-600">
+          <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
             {degreePlan.totalCredits > 0 ? Math.round((totalCompletedCredits / degreePlan.totalCredits) * 100) : 0}%
           </span>
         </div>
-        <div className="w-full bg-gray-100 rounded-full h-3">
+        <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-3">
           <div
-            className="bg-blue-600 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(37,99,235,0.3)]"
+            className="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(37,99,235,0.3)]"
             style={{ width: `${degreePlan.totalCredits > 0 ? (totalCompletedCredits / degreePlan.totalCredits) * 100 : 0}%` }}
           ></div>
         </div>
@@ -155,9 +155,9 @@ export const DegreePlanTab = ({
 
       <div className="space-y-8">
         {(isDegreeEditMode ? editedCategories : degreePlan.categories).length === 0 && !isDegreeLoading ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
-            <List size={48} className="mx-auto text-gray-200 mb-4" />
-            <p className="text-gray-400 text-sm">ไม่พบข้อมูลหมวดหมู่ (กรุณากดปุ่มแก้ไขเพื่อเพิ่ม)</p>
+          <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-gray-200 dark:border-zinc-800">
+            <List size={48} className="mx-auto text-gray-200 dark:text-zinc-800 mb-4" />
+            <p className="text-gray-400 dark:text-zinc-500 text-sm">ไม่พบข้อมูลหมวดหมู่ (กรุณากดปุ่มแก้ไขเพื่อเพิ่ม)</p>
           </div>
         ) : null}
         
@@ -172,32 +172,32 @@ export const DegreePlanTab = ({
           }, 0);
 
           return (
-            <div key={category.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-              <div className="bg-gray-50/50 px-5 py-4 border-b border-gray-50 flex justify-between items-center">
+            <div key={category.id} className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="bg-gray-50/50 dark:bg-zinc-800/50 px-5 py-4 border-b border-gray-50 dark:border-zinc-800 flex justify-between items-center">
                 {isDegreeEditMode ? (
                   <input
                     type="text"
                     value={category.name}
                     onChange={(e) => updateCategoryName(category.id, e.target.value)}
-                    className="font-bold text-gray-900 bg-transparent border-b border-blue-300 focus:outline-none focus:border-blue-600"
+                    className="font-bold text-gray-900 dark:text-zinc-100 bg-transparent border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600"
                   />
                 ) : (
-                  <h3 className="font-bold text-gray-900">{category.name}</h3>
+                  <h3 className="font-bold text-gray-900 dark:text-zinc-100">{category.name}</h3>
                 )}
                 <div className="flex items-center gap-3">
                   {isDegreeEditMode ? (
-                    <div className="flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg">
-                      <span className="text-[11px] font-black text-blue-600">{completedInCategory} / </span>
+                    <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-lg">
+                      <span className="text-[11px] font-black text-blue-600 dark:text-blue-400">{completedInCategory} / </span>
                       <input
                         type="number"
                         value={category.required}
                         onChange={(e) => updateCategoryRequired(category.id, parseInt(e.target.value) || 0)}
-                        className="w-8 text-[11px] font-black text-blue-600 bg-transparent border-b border-blue-300 focus:outline-none focus:border-blue-600 text-center"
+                        className="w-8 text-[11px] font-black text-blue-600 dark:text-blue-400 bg-transparent border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600 text-center"
                       />
-                      <span className="text-[11px] font-black text-blue-600">นก.</span>
+                      <span className="text-[11px] font-black text-blue-600 dark:text-blue-400">นก.</span>
                     </div>
                   ) : (
-                    <span className="text-[11px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">{completedInCategory} / {category.required} นก.</span>
+                    <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-lg">{completedInCategory} / {category.required} นก.</span>
                   )}
                   {isDegreeEditMode && (
                     <button onClick={() => setConfirmDeleteCategoryId(category.id)} className="text-red-400 hover:text-red-600 p-1 transition-colors"><Trash2 size={16} /></button>
@@ -214,8 +214,8 @@ export const DegreePlanTab = ({
                   return (
                     <div key={courseCode} className="relative group">
                       <div className={`w-full p-3 md:p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all ${isCompleted
-                        ? 'bg-green-50 border-green-200 text-green-700 shadow-sm'
-                        : 'bg-white border-gray-100 text-gray-400 hover:border-blue-200 hover:bg-blue-50/30'
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400 shadow-sm'
+                        : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
                         } ${isDegreeEditMode ? 'opacity-50 cursor-default' : ''}`}
                       >
                         <button
@@ -223,24 +223,24 @@ export const DegreePlanTab = ({
                           onClick={() => toggleCourseCompletion(courseCode)}
                           className="flex flex-col items-center gap-1 w-full active:scale-95 transition-transform"
                         >
-                          <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 bg-gray-50'}`}>
+                          <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
                             {isCompleted && <CheckCircle size={12} />}
                           </div>
-                          <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-green-800' : 'text-gray-700'}`}>{courseCode}</span>
+                          <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-green-800 dark:text-green-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
                         </button>
 
                         {isCompleted && !isDegreeEditMode && (
                           <select
                             value={completedData.grade || 'A'}
                             onChange={(e) => updateCourseGrade(courseCode, e.target.value)}
-                            className="mt-2 text-[10px] font-bold bg-white border border-green-200 rounded px-1.5 py-0.5 text-green-700 outline-none focus:ring-1 focus:ring-green-400 cursor-pointer"
+                            className="mt-2 text-[10px] font-bold bg-white dark:bg-zinc-800 border border-green-200 dark:border-green-900/50 rounded px-1.5 py-0.5 text-green-700 dark:text-green-400 outline-none focus:ring-1 focus:ring-green-400 cursor-pointer"
                           >
                             {gradeOptions.map(g => <option key={g} value={g}>{g}</option>)}
                           </select>
                         )}
                         
                         {(!isCompleted || isDegreeEditMode) && (
-                          <span className={`text-[9px] md:text-[10px] font-medium line-clamp-1 text-center ${isCompleted ? 'text-green-600/80' : 'text-gray-400'}`}>
+                          <span className={`text-[9px] md:text-[10px] font-medium line-clamp-1 text-center ${isCompleted ? 'text-green-600/80 dark:text-green-400/80' : 'text-gray-400 dark:text-zinc-600'}`}>
                             {courseData?.name || 'ไม่ระบุชื่อวิชา'}
                           </span>
                         )}
@@ -248,7 +248,7 @@ export const DegreePlanTab = ({
                       {isDegreeEditMode && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDeleteCourse(category.id, courseCode); }}
-                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 shadow-lg shadow-red-200 z-10 hover:scale-110 transition-transform"
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 shadow-lg shadow-red-200 dark:shadow-none z-10 hover:scale-110 transition-transform"
                         >
                           <X size={12} />
                         </button>
@@ -259,7 +259,7 @@ export const DegreePlanTab = ({
                 {isDegreeEditMode && (
                   <button
                     onClick={() => handleAddCourse(category.id)}
-                    className="p-4 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-gray-300 hover:border-blue-300 hover:text-blue-500 transition-all hover:bg-blue-50/50 group"
+                    className="p-4 border-2 border-dashed border-gray-200 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center text-gray-300 dark:text-zinc-700 hover:border-blue-300 hover:text-blue-500 dark:hover:text-blue-400 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group"
                   >
                     <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                     <span className="text-[10px] font-black mt-1 uppercase tracking-widest">เพิ่มวิชา </span>
@@ -272,7 +272,7 @@ export const DegreePlanTab = ({
         {isDegreeEditMode && (
           <button
             onClick={handleAddCategory}
-            className="w-full py-6 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 hover:bg-gray-50/50 hover:border-gray-300 transition-all font-bold flex items-center justify-center gap-2 group"
+            className="w-full py-6 border-2 border-dashed border-gray-200 dark:border-zinc-700 rounded-2xl text-gray-400 dark:text-zinc-600 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 hover:border-gray-300 dark:hover:border-zinc-500 transition-all font-bold flex items-center justify-center gap-2 group"
           >
             <Plus size={20} className="group-hover:scale-125 transition-transform" /> เพิ่มหมวดวิชาใหม่
           </button>
@@ -280,17 +280,17 @@ export const DegreePlanTab = ({
       </div>
 
       {confirmDeleteCategoryId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl border border-gray-100 transform transition-all animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-xl border border-gray-100 dark:border-zinc-800 transform transition-all animate-scale-up">
             <div className="p-8">
-              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Trash2 size={30} className="text-red-500" strokeWidth={2} />
+              <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Trash2 size={30} className="text-red-500 dark:text-red-400" strokeWidth={2} />
               </div>
               
               <div className="text-center mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">ลบหมวดหมู่วิชา?</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  คุณแน่ใจหรือไม่ว่าต้องการลบหมวด <span className="font-bold text-gray-800">"{editedCategories.find(c => c.id === confirmDeleteCategoryId)?.name}"</span>? 
+                <h3 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-2">ลบหมวดหมู่วิชา?</h3>
+                <p className="text-gray-500 dark:text-zinc-400 text-sm leading-relaxed">
+                  คุณแน่ใจหรือไม่ว่าต้องการลบหมวด <span className="font-bold text-gray-800 dark:text-zinc-200">"{editedCategories.find(c => c.id === confirmDeleteCategoryId)?.name}"</span>? 
                   รายวิชาทั้งหมดในหมวดนี้จะหายไปด้วย
                 </p>
               </div>
@@ -298,13 +298,13 @@ export const DegreePlanTab = ({
               <div className="flex gap-3">
                 <button 
                   onClick={() => setConfirmDeleteCategoryId(null)} 
-                  className="flex-1 py-3.5 text-sm font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                  className="flex-1 py-3.5 text-sm font-bold text-gray-500 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-xl transition-colors"
                 >
                   ยกเลิก
                 </button>
                 <button 
                   onClick={() => onInternalDeleteCategory(confirmDeleteCategoryId)} 
-                  className="flex-1 py-3.5 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-100 transition-all active:scale-95"
+                  className="flex-1 py-3.5 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all active:scale-95"
                 >
                   ยืนยันการลบ
                 </button>
