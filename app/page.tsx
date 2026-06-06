@@ -257,6 +257,7 @@ export default function App() {
               removeCourseFromPlanner={removeCourseFromPlanner}
               openManualCourseModal={() => setIsManualCourseModalOpen(true)}
               calendarEvents={calendarEvents}
+              showToast={showToast}
             />
           )}
 

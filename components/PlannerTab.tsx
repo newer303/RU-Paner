@@ -15,6 +15,7 @@ interface PlannerTabProps {
   removeCourseFromPlanner: (code: string) => void;
   openManualCourseModal: () => void;
   calendarEvents: CalendarEvent[];
+  showToast?: (msg: string) => void;
 }
 
 export const PlannerTab = ({
@@ -26,7 +27,8 @@ export const PlannerTab = ({
   selectedCourses,
   removeCourseFromPlanner,
   openManualCourseModal,
-  calendarEvents
+  calendarEvents,
+  showToast
 }: PlannerTabProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const plannerRef = useRef<HTMLDivElement>(null);
@@ -45,20 +47,32 @@ export const PlannerTab = ({
   const handleExportImage = async () => {
     if (!plannerRef.current) return;
     setIsExporting(true);
+    
+    // Give a small delay to ensure UI is ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const canvas = await html2canvas(plannerRef.current, {
         backgroundColor: '#f9fafb',
-        scale: 2, // Higher quality
-        logging: false,
-        useCORS: true
+        scale: 3, // Even higher quality
+        logging: true,
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: 800, // Fixed width for consistent image aspect ratio
       });
-      const image = canvas.toDataURL('image/png');
+      
+      const image = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
       link.href = image;
-      link.download = `my-ru-schedule-${new Date().getTime()}.png`;
+      link.download = `ru-planner-${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.png`;
+      document.body.appendChild(link);
       link.click();
-    } catch (err) {
+      document.body.removeChild(link);
+      
+      if (showToast) showToast('บันทึกรูปภาพเรียบร้อยแล้ว');
+    } catch (err: any) {
       console.error('Image export failed:', err);
+      alert('ไม่สามารถบันทึกรูปภาพได้: ' + (err.message || 'เกิดข้อผิดพลาดทางเทคนิค'));
     } finally {
       setIsExporting(false);
     }
