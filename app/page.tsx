@@ -230,7 +230,7 @@ export default function App() {
           )}
 
           {activeTab === 'courses' && (
-            <CoursesTab courses={mr30Courses} onCourseAdded={loadAllData} />
+            <CoursesTab courses={mr30Courses} onCourseAdded={loadAllData} showToast={showToast} />
           )}
 
           {activeTab === 'planner' && (

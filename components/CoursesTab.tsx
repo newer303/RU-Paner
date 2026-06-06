@@ -6,9 +6,10 @@ import { useState, useMemo, useRef } from 'react';
 interface CoursesTabProps {
   courses: Course[];
   onCourseAdded?: () => void;
+  showToast?: (msg: string) => void;
 }
 
-export const CoursesTab = ({ courses, onCourseAdded }: CoursesTabProps) => {
+export const CoursesTab = ({ courses, onCourseAdded, showToast }: CoursesTabProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -78,10 +79,11 @@ export const CoursesTab = ({ courses, onCourseAdded }: CoursesTabProps) => {
       if (!res.ok) throw new Error('Failed to save course');
       
       setIsModalOpen(false);
+      if (showToast) showToast(isEditing ? `อัปเดตวิชา ${formData.code} แล้ว` : `เพิ่มวิชา ${formData.code} เรียบร้อยแล้ว`);
       if (onCourseAdded) onCourseAdded();
     } catch (err) {
       console.error(err);
-      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      if (showToast) showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     } finally {
       setIsSubmitting(false);
     }
@@ -294,11 +296,11 @@ export const CoursesTab = ({ courses, onCourseAdded }: CoursesTabProps) => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 dark:border-zinc-800">
             <div className="bg-gray-50 dark:bg-zinc-800/50 px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center">
               <h3 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-2">
-                {isEditing ? <Edit2 size={18} className="text-blue-600 dark:text-blue-500" /> : <Plus size={18} className="text-blue-600 dark:text-blue-500" />}
+                {isEditing ? <Edit2 size={18} className="text-blue-600 dark:text-blue-50" /> : <Plus size={18} className="text-blue-600 dark:text-blue-50" />}
                 {isEditing ? 'แก้ไขข้อมูลวิชา' : 'เพิ่มวิชาใหม่เข้าระบบ'}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800">
@@ -368,7 +370,7 @@ export const CoursesTab = ({ courses, onCourseAdded }: CoursesTabProps) => {
                   type="text"
                   placeholder="เช่น KTB 201"
                   className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
-                  value={formData.code.startsWith('e-') ? 'e-Testing (Online)' : formData.room}
+                  value={formData.room}
                   onChange={e => setFormData({ ...formData, room: e.target.value })}
                 />
               </div>
@@ -413,7 +415,7 @@ export const CoursesTab = ({ courses, onCourseAdded }: CoursesTabProps) => {
       )}
 
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 dark:border-zinc-800">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
