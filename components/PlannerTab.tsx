@@ -2,7 +2,7 @@
 import { CalendarDays, Search, Plus, AlertCircle, Clock, X, Download, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Course, PlannerCourse, CalendarEvent } from '@/types';
 import { generateICS } from '@/lib/utils';
-import html2canvas from 'html2canvas';
+import { domToPng } from 'modern-screenshot';
 import { useRef, useState } from 'react';
 
 interface PlannerTabProps {
@@ -49,21 +49,16 @@ export const PlannerTab = ({
     setIsExporting(true);
     
     // Give a small delay to ensure UI is ready
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
-      const canvas = await html2canvas(plannerRef.current, {
-        backgroundColor: '#f9fafb',
-        scale: 3, // Even higher quality
-        logging: true,
-        useCORS: true,
-        allowTaint: true,
-        windowWidth: 800, // Fixed width for consistent image aspect ratio
+      const dataUrl = await domToPng(plannerRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
       });
       
-      const image = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
-      link.href = image;
+      link.href = dataUrl;
       link.download = `ru-planner-${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.png`;
       document.body.appendChild(link);
       link.click();
