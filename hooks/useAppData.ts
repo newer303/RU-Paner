@@ -254,13 +254,16 @@ export function useAppData() {
       setPlannerError(`วิชา ${course.code} อยู่ในตารางแล้ว`);
       return;
     }
+
     const examConflict = selectedCourses.find(
-      c => c.examDate === course.examDate && c.examTime === course.examTime
+      c => c.examDate && course.examDate && c.examDate === course.examDate && c.examTime === course.examTime
     );
+
     if (examConflict) {
-      setPlannerError(`ชนกับ ${examConflict.code}! วันและเวลาสอบตรงกัน`);
-      return;
+      const confirmAdd = window.confirm(`⚠️ วันสอบซ้ำซ้อน!\n\nวิชา ${course.code} สอบวันเดียวกับ ${examConflict.code}\n(${course.examDate} ${course.examTime})\n\nคุณยังต้องการเพิ่มวิชานี้ลงในแผนการเรียนหรือไม่?`);
+      if (!confirmAdd) return;
     }
+
     try {
       const res = await fetch('/api/planner', {
         method: 'POST',
@@ -270,6 +273,11 @@ export function useAppData() {
       if (!res.ok) throw new Error('Add failed');
       await loadAllData();
       setSearchQuery('');
+      if (examConflict) {
+        showToast(`เพิ่มวิชา ${course.code} แล้ว (ระวังวันสอบซ้ำซ้อน!)`);
+      } else {
+        showToast(`เพิ่มวิชา ${course.code} เข้าตารางแล้ว`);
+      }
     } catch (err) {
       setPlannerError('เพิ่มวิชาไม่สำเร็จ');
     }

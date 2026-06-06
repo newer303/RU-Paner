@@ -1,7 +1,9 @@
 'use client';
-import { CalendarDays, Search, Plus, AlertCircle, Clock, X, Download } from 'lucide-react';
+import { CalendarDays, Search, Plus, AlertCircle, Clock, X, Download, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Course, PlannerCourse, CalendarEvent } from '@/types';
 import { generateICS } from '@/lib/utils';
+import html2canvas from 'html2canvas';
+import { useRef, useState } from 'react';
 
 interface PlannerTabProps {
   searchQuery: string;
@@ -26,6 +28,9 @@ export const PlannerTab = ({
   openManualCourseModal,
   calendarEvents
 }: PlannerTabProps) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const plannerRef = useRef<HTMLDivElement>(null);
+
   const handleExportICS = () => {
     const icsContent = generateICS(selectedCourses, []);
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
@@ -35,6 +40,28 @@ export const PlannerTab = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleExportImage = async () => {
+    if (!plannerRef.current) return;
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(plannerRef.current, {
+        backgroundColor: '#f9fafb',
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true
+      });
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `my-ru-schedule-${new Date().getTime()}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Image export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -47,6 +74,14 @@ export const PlannerTab = ({
           <p className="text-gray-500 dark:text-zinc-400 text-sm">จำลองการจัดตารางและเช็ควันสอบซ้ำซ้อน</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleExportImage}
+            disabled={selectedCourses.length === 0 || isExporting}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 dark:shadow-none transition-all active:scale-95 disabled:opacity-50"
+          >
+            {isExporting ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} />} 
+            เซฟเป็นรูปภาพ
+          </button>
           <button
             onClick={handleExportICS}
             disabled={selectedCourses.length === 0}
@@ -107,9 +142,9 @@ export const PlannerTab = ({
         </div>
       )}
 
-      <div className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden mb-6">
+      <div ref={plannerRef} className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden mb-6">
         <div className="bg-gray-50/50 dark:bg-zinc-800/50 px-5 py-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center">
-          <h3 className="font-bold text-gray-900 dark:text-zinc-100">วิชาที่เลือกลงทะเบียน</h3>
+          <h3 className="font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-tight">ตารางเรียนของฉัน</h3>
           <span className="text-[11px] bg-blue-600 dark:bg-blue-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-wider">
             {selectedCourses.reduce((sum, c) => sum + (c.credit || 0), 0)} หน่วยกิต
           </span>
