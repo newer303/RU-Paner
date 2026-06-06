@@ -81,23 +81,39 @@ export default function App() {
 
   const subscribeToPush = async () => {
     try {
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!publicKey) {
+        throw new Error('VAPID Public Key is missing. Please check your environment variables.');
+      }
+
+      // Check permission first
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Permission not granted for notifications.');
+      }
+
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
 
-      await fetch('/api/web-push', {
+      const response = await fetch('/api/web-push', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save subscription on server');
+      }
+
       setIsPushSubscribed(true);
       alert('ลงทะเบียนรับแจ้งเตือนผ่าน Browser สำเร็จ!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to subscribe:', err);
-      alert('เกิดข้อผิดพลาดในการลงทะเบียน');
+      alert(`เกิดข้อผิดพลาด: ${err.message || 'ไม่ทราบสาเหตุ'}`);
     }
   };
 
