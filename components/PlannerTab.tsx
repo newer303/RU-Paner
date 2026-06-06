@@ -89,7 +89,7 @@ export const PlannerTab = ({
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 dark:shadow-none transition-all active:scale-95 disabled:opacity-50"
           >
             {isExporting ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} />} 
-            เซฟเป็นรูปภาพ
+            Save Image
           </button>
           {/* <button
             onClick={handleExportICS}
