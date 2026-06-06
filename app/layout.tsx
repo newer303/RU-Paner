@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "RU Planner",
@@ -39,7 +40,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-h-full">{children}</main>
+          <AuthProvider>
+            <main className="min-h-full">{children}</main>
+          </AuthProvider>
         </ThemeProvider>
         <script
           dangerouslySetInnerHTML={{

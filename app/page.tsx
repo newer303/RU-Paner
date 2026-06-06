@@ -6,7 +6,7 @@ import { NavButton } from '@/components/NavButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Calendar, BookMarked, Bell, LayoutDashboard, List, CalendarDays,
-  Smartphone, AlertCircle, CheckCircle
+  Smartphone, AlertCircle, CheckCircle, Loader2
 } from 'lucide-react';
 import { CalendarTab } from '@/components/CalendarTab';
 import { PlannerTab } from '@/components/PlannerTab';
@@ -16,6 +16,9 @@ import { DashboardTab } from '@/components/DashboardTab';
 
 // Hooks
 import { useAppData } from '@/hooks/useAppData';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 // Modals
 import { EventModal } from '@/components/modals/EventModal';
@@ -25,6 +28,9 @@ import { AddCategoryModal } from '@/components/modals/AddCategoryModal';
 import { ManualCourseModal } from '@/components/modals/ManualCourseModal';
 
 export default function App() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const {
     activeTab, setActiveTab,
     filterRegion, setFilterRegion,
@@ -59,6 +65,22 @@ export default function App() {
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse
   } = useAppData();
 
+  React.useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!session) return null;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 font-sans text-gray-800 dark:text-zinc-200 transition-colors duration-300">
       <header className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 sticky top-0 z-40 transition-colors duration-300">
@@ -72,11 +94,21 @@ export default function App() {
               <p className="hidden md:block text-xs text-gray-500 dark:text-zinc-400">ระบบจัดการตารางเรียนและหลักสูตร ม.รามคำแหง</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <div className="md:hidden">
-              <Bell size={20} className="text-gray-400 dark:text-zinc-500" />
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
+              <UserIcon size={14} className="text-gray-500 dark:text-zinc-400" />
+              <span className="text-xs font-medium text-gray-700 dark:text-zinc-300 max-w-[120px] truncate">
+                {session.user?.name || session.user?.email}
+              </span>
             </div>
+            <ThemeToggle />
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="p-1.5 md:p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              title="ออกจากระบบ"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
       </header>
