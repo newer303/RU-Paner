@@ -1,7 +1,7 @@
 'use client';
-import { BookMarked, Search, Clock, MapPin, Calendar, Info, Plus, X, Save, Edit2, Trash2, AlertTriangle, FileUp, CheckCircle } from 'lucide-react';
+import { BookMarked, Search, Clock, MapPin, Calendar, Info, Plus, X, Save, Edit2, Trash2, AlertTriangle, FileUp, CheckCircle, ChevronDown, Filter } from 'lucide-react';
 import { Course } from '@/types';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 
 interface CoursesTabProps {
   courses: Course[];
@@ -30,6 +30,8 @@ export const CoursesTab = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedPrefix, setSelectedPrefix] = useState<string>('ALL');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredCourses = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -57,19 +59,32 @@ export const CoursesTab = ({
     return Object.keys(groupedCourses).sort();
   }, [groupedCourses]);
 
-  const allPrefixes = useMemo(() => {
-    const prefixes = new Set<string>();
+  const allPrefixesWithCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
     courses.forEach(c => {
-      const prefix = c.code.match(/^[A-Z]+/)?.[0];
-      if (prefix) prefixes.add(prefix);
+      const prefix = c.code.match(/^[A-Z]+/)?.[0] || 'OTHER';
+      counts[prefix] = (counts[prefix] || 0) + 1;
     });
-    return Array.from(prefixes).sort();
+    return Object.entries(counts)
+      .map(([prefix, count]) => ({ prefix, count }))
+      .sort((a, b) => a.prefix.localeCompare(b.prefix));
   }, [courses]);
 
   const displayedGroups = useMemo(() => {
     if (selectedPrefix === 'ALL') return sortedPrefixes;
     return sortedPrefixes.filter(p => p === selectedPrefix);
   }, [sortedPrefixes, selectedPrefix]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const [formData, setFormData] = useState<Course>({
     code: '',
@@ -260,35 +275,57 @@ export const CoursesTab = ({
         </div>
       )}
 
-      <div className="relative mb-4">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="text-gray-400 dark:text-zinc-500" size={18} />
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="text-gray-400 dark:text-zinc-500" size={18} />
+          </div>
+          <input
+            type="text"
+            placeholder="ค้นหารหัสวิชา หรือชื่อวิชา..."
+            className="w-full pl-11 pr-4 py-3.5 border border-gray-200 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none shadow-sm transition-all bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-600"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-        <input
-          type="text"
-          placeholder="ค้นหารหัสวิชา หรือชื่อวิชา..."
-          className="w-full pl-11 pr-4 py-4 border border-gray-200 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none shadow-sm transition-all bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-600"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide no-scrollbar">
-        <button
-          onClick={() => setSelectedPrefix('ALL')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 ${selectedPrefix === 'ALL' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 border border-gray-100 dark:border-zinc-800'}`}
-        >
-          ทั้งหมด
-        </button>
-        {allPrefixes.map(prefix => (
+        <div className="relative" ref={dropdownRef}>
           <button
-            key={prefix}
-            onClick={() => setSelectedPrefix(prefix)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex-shrink-0 ${selectedPrefix === prefix ? 'bg-blue-600 text-white' : 'bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 border border-gray-100 dark:border-zinc-800'}`}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full md:w-64 px-4 py-3.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl flex items-center justify-between gap-3 hover:border-blue-400 dark:hover:border-blue-500 transition-all shadow-sm group"
           >
-            {prefix}
+            <div className="flex items-center gap-2">
+              <Filter size={18} className={selectedPrefix === 'ALL' ? 'text-gray-400' : 'text-blue-600'} />
+              <span className="font-bold text-sm text-gray-700 dark:text-zinc-300">
+                {selectedPrefix === 'ALL' ? 'หมวดวิชาทั้งหมด' : `หมวดวิชา ${selectedPrefix}`}
+              </span>
+            </div>
+            <ChevronDown size={18} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
-        ))}
+
+          {isDropdownOpen && (
+            <div className="absolute z-[60] mt-2 w-full bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="max-h-72 overflow-y-auto p-2 no-scrollbar">
+                <button
+                  onClick={() => { setSelectedPrefix('ALL'); setIsDropdownOpen(false); }}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex justify-between items-center transition-colors ${selectedPrefix === 'ALL' ? 'bg-blue-600 text-white' : 'hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-400'}`}
+                >
+                  ทั้งหมด <span>({courses.length})</span>
+                </button>
+                <div className="h-px bg-gray-50 dark:bg-zinc-800 my-1 mx-2"></div>
+                {allPrefixesWithCounts.map(({ prefix, count }) => (
+                  <button
+                    key={prefix}
+                    onClick={() => { setSelectedPrefix(prefix); setIsDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex justify-between items-center transition-colors ${selectedPrefix === prefix ? 'bg-blue-600 text-white' : 'hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-400'}`}
+                  >
+                    {prefix} <span>({count})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-8">
