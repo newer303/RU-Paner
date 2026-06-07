@@ -8,9 +8,32 @@ export async function GET() {
   }
 
   try {
-    const { data: courses, error } = await supabase.from('courses').select('*');
-    if (error) throw error;
-    return NextResponse.json(courses);
+    let allCourses: any[] = [];
+    let from = 0;
+    const limit = 1000;
+    let keepFetching = true;
+
+    while (keepFetching) {
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('*')
+        .range(from, from + limit - 1);
+      
+      if (error) throw error;
+      
+      if (courses && courses.length > 0) {
+        allCourses = [...allCourses, ...courses];
+        from += limit;
+      } else {
+        keepFetching = false;
+      }
+      
+      if (courses && courses.length < limit) {
+        keepFetching = false;
+      }
+    }
+
+    return NextResponse.json(allCourses);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
