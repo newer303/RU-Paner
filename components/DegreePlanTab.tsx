@@ -90,6 +90,12 @@ export const DegreePlanTab = ({
     setConfirmDeleteCategoryId(null);
   };
 
+  const totalCoursesCount = degreePlan.categories.reduce((sum, cat) => sum + cat.courses.length, 0);
+  const totalCompletedCount = degreePlan.categories.reduce((sum, cat) => {
+    return sum + cat.courses.filter(code => completedCourses.some(c => c.course_code === code)).length;
+  }, 0);
+  const totalUnpassedCount = totalCoursesCount - totalCompletedCount;
+
   return (
     <div className="animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -120,36 +126,53 @@ export const DegreePlanTab = ({
         </button>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 mb-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 dark:bg-blue-500"></div>
-        <div className="flex justify-between items-end mb-4">
-          <div>
-            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ความคืบหน้าโดยรวม</span>
-            {isDegreeEditMode ? (
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}</span>
-                <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">/ </span>
-                <input
-                  type="number"
-                  value={editedTotalCredits}
-                  onChange={(e) => setEditedTotalCredits(parseInt(e.target.value) || 0)}
-                  className="w-16 text-sm font-bold text-blue-600 dark:text-blue-400 border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600 bg-transparent"
-                />
-                <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">นก.</span>
-              </div>
-            ) : (
-              <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}<span className="text-sm font-bold text-gray-400 dark:text-zinc-500 ml-1">/ {degreePlan.totalCredits} นก.</span></span>
-            )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 dark:bg-blue-500"></div>
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ความคืบหน้าโดยรวม</span>
+              {isDegreeEditMode ? (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}</span>
+                  <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">/ </span>
+                  <input
+                    type="number"
+                    value={editedTotalCredits}
+                    onChange={(e) => setEditedTotalCredits(parseInt(e.target.value) || 0)}
+                    className="w-16 text-sm font-bold text-blue-600 dark:text-blue-400 border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600 bg-transparent"
+                  />
+                  <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">นก.</span>
+                </div>
+              ) : (
+                <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}<span className="text-sm font-bold text-gray-400 dark:text-zinc-500 ml-1">/ {degreePlan.totalCredits} นก.</span></span>
+              )}
+            </div>
+            <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
+              {degreePlan.totalCredits > 0 ? Math.round((totalCompletedCredits / degreePlan.totalCredits) * 100) : 0}%
+            </span>
           </div>
-          <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
-            {degreePlan.totalCredits > 0 ? Math.round((totalCompletedCredits / degreePlan.totalCredits) * 100) : 0}%
-          </span>
+          <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-3">
+            <div
+              className="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(37,99,235,0.3)]"
+              style={{ width: `${degreePlan.totalCredits > 0 ? (totalCompletedCredits / degreePlan.totalCredits) * 100 : 0}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-3">
-          <div
-            className="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(37,99,235,0.3)]"
-            style={{ width: `${degreePlan.totalCredits > 0 ? (totalCompletedCredits / degreePlan.totalCredits) * 100 : 0}%` }}
-          ></div>
+
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 flex flex-col justify-center items-center text-center">
+          <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-2">สรุปจำนวนวิชา</span>
+          <div className="flex gap-6 items-center">
+            <div>
+              <span className="block text-2xl font-black text-emerald-600 dark:text-emerald-500">{totalCompletedCount}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">ผ่านแล้ว</span>
+            </div>
+            <div className="w-[1px] h-10 bg-gray-100 dark:bg-zinc-800"></div>
+            <div>
+              <span className="block text-2xl font-black text-orange-600 dark:text-orange-500">{totalUnpassedCount}</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">ยังไม่ผ่าน</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -171,19 +194,26 @@ export const DegreePlanTab = ({
             return sum;
           }, 0);
 
+          const totalCoursesInCat = category.courses.length;
+          const completedCountInCat = category.courses.filter(code => completedCourses.some(c => c.course_code === code)).length;
+          const unpassedCountInCat = totalCoursesInCat - completedCountInCat;
+
           return (
             <div key={category.id} className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
               <div className="bg-gray-50/50 dark:bg-zinc-800/50 px-5 py-4 border-b border-gray-50 dark:border-zinc-800 flex justify-between items-center">
-                {isDegreeEditMode ? (
-                  <input
-                    type="text"
-                    value={category.name}
-                    onChange={(e) => updateCategoryName(category.id, e.target.value)}
-                    className="font-bold text-gray-900 dark:text-zinc-100 bg-transparent border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600"
-                  />
-                ) : (
-                  <h3 className="font-bold text-gray-900 dark:text-zinc-100">{category.name}</h3>
-                )}
+                <div className="flex flex-col">
+                  {isDegreeEditMode ? (
+                    <input
+                      type="text"
+                      value={category.name}
+                      onChange={(e) => updateCategoryName(category.id, e.target.value)}
+                      className="font-bold text-gray-900 dark:text-zinc-100 bg-transparent border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600"
+                    />
+                  ) : (
+                    <h3 className="font-bold text-gray-900 dark:text-zinc-100">{category.name}</h3>
+                  )}
+                  <span className="text-[10px] font-bold text-gray-400 uppercase mt-0.5">เหลืออีก {unpassedCountInCat} วิชา</span>
+                </div>
                 <div className="flex items-center gap-3">
                   {isDegreeEditMode ? (
                     <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-lg">
