@@ -356,7 +356,7 @@ export function useAppData() {
   const toggleCourseCompletion = async (courseCode: string) => {
     if (isDegreeEditMode) return;
     const existing = completedCourses.find(c => c.course_code === courseCode);
-    const isCompleted = !!existing;
+    const isCompleted = !!existing && !existing.is_reexam;
 
     try {
       const res = await fetch('/api/degree-plan/completed', {
@@ -365,6 +365,7 @@ export function useAppData() {
         body: JSON.stringify({ 
           courseCode, 
           completed: !isCompleted,
+          is_reexam: false,
           grade: !isCompleted ? 'A' : null 
         }),
       });
@@ -373,6 +374,30 @@ export function useAppData() {
     } catch (error) {
       console.error(error);
       showToast('ไม่สามารถบันทึกสถานะวิชาได้');
+    }
+  };
+
+  const toggleReExam = async (courseCode: string) => {
+    if (isDegreeEditMode) return;
+    const existing = completedCourses.find(c => c.course_code === courseCode);
+    const isReExam = !!existing && existing.is_reexam;
+
+    try {
+      const res = await fetch('/api/degree-plan/completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          courseCode, 
+          completed: false,
+          is_reexam: !isReExam,
+          grade: !isReExam ? 'F' : null 
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to update re-exam status');
+      await loadAllData();
+    } catch (error) {
+      console.error(error);
+      showToast('ไม่สามารถบันทึกสถานะสอบซ่อมได้');
     }
   };
 
@@ -543,7 +568,7 @@ export function useAppData() {
     loadAllData, updateSetting,
     handleOpenEventModal, handleSaveEvent, handleDeleteEvent,
     searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
-    totalCompletedCredits, toggleCourseCompletion, updateCourseGrade, handleSaveDegreeSettings,
+    totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
     handleAddCategory, closeAddCategoryModal, confirmAddCategory, handleDeleteCategory,
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse

@@ -30,6 +30,7 @@ export interface DegreeCategory {
 export interface CompletedCourse {
   course_code: string;
   grade?: string;
+  is_reexam?: boolean;
 }
 
 export interface DegreePlan {

@@ -59,7 +59,7 @@ export default function App() {
     loadAllData, updateSetting,
     handleOpenEventModal, handleSaveEvent, handleDeleteEvent,
     searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
-    totalCompletedCredits, toggleCourseCompletion, updateCourseGrade, handleSaveDegreeSettings,
+    totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
     handleAddCategory, closeAddCategoryModal, confirmAddCategory, handleDeleteCategory,
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse,
@@ -367,6 +367,7 @@ export default function App() {
                 handleSaveDegreeSettings={handleSaveDegreeSettings}
                 totalCompletedCredits={totalCompletedCredits}
                 toggleCourseCompletion={toggleCourseCompletion}
+                toggleReExam={toggleReExam}
                 updateCourseGrade={updateCourseGrade}
                 handleAddCategory={handleAddCategory}
                 handleDeleteCategory={handleDeleteCategory}

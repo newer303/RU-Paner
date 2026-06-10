@@ -10,6 +10,7 @@ interface DegreePlanTabProps {
   completedCourses: CompletedCourse[];
   totalCompletedCredits: number;
   toggleCourseCompletion: (code: string) => void;
+  toggleReExam: (code: string) => void;
   updateCourseGrade: (code: string, grade: string) => void;
   handleDeleteCategory: (id: string) => void;
   handleAddCourse: (id: string) => void;
@@ -27,6 +28,7 @@ export const DegreePlanTab = ({
   completedCourses,
   totalCompletedCredits,
   toggleCourseCompletion,
+  toggleReExam,
   updateCourseGrade,
   handleDeleteCategory,
   handleAddCourse,
@@ -92,9 +94,12 @@ export const DegreePlanTab = ({
 
   const totalCoursesCount = degreePlan.categories.reduce((sum, cat) => sum + cat.courses.length, 0);
   const totalCompletedCount = degreePlan.categories.reduce((sum, cat) => {
-    return sum + cat.courses.filter(code => completedCourses.some(c => c.course_code === code)).length;
+    return sum + cat.courses.filter(code => completedCourses.some(c => c.course_code === code && !c.is_reexam)).length;
   }, 0);
-  const totalUnpassedCount = totalCoursesCount - totalCompletedCount;
+  const totalReExamCount = degreePlan.categories.reduce((sum, cat) => {
+    return sum + cat.courses.filter(code => completedCourses.some(c => c.course_code === code && c.is_reexam)).length;
+  }, 0);
+  const totalUnpassedCount = totalCoursesCount - totalCompletedCount - totalReExamCount;
 
   return (
     <div className="animate-fade-in">
@@ -126,7 +131,7 @@ export const DegreePlanTab = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 dark:bg-blue-500"></div>
           <div className="flex justify-between items-end mb-4">
@@ -160,18 +165,20 @@ export const DegreePlanTab = ({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 flex flex-col justify-center items-center text-center">
-          <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-2">สรุปจำนวนวิชา</span>
-          <div className="flex gap-6 items-center">
-            <div>
-              <span className="block text-2xl font-black text-emerald-600 dark:text-emerald-500">{totalCompletedCount}</span>
-              <span className="text-[10px] font-bold text-gray-400 uppercase">ผ่านแล้ว</span>
-            </div>
-            <div className="w-[1px] h-10 bg-gray-100 dark:bg-zinc-800"></div>
-            <div>
-              <span className="block text-2xl font-black text-orange-600 dark:text-orange-500">{totalUnpassedCount}</span>
-              <span className="text-[10px] font-bold text-gray-400 uppercase">ยังไม่ผ่าน</span>
-            </div>
+        <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 flex justify-around items-center text-center">
+          <div>
+            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ผ่านแล้ว</span>
+            <span className="block text-2xl font-black text-emerald-600 dark:text-emerald-500">{totalCompletedCount}</span>
+          </div>
+          <div className="w-[1px] h-10 bg-gray-100 dark:bg-zinc-800"></div>
+          <div>
+            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">รอสอบแก้</span>
+            <span className="block text-2xl font-black text-orange-600 dark:text-orange-500">{totalReExamCount}</span>
+          </div>
+          <div className="w-[1px] h-10 bg-gray-100 dark:bg-zinc-800"></div>
+          <div>
+            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ยังไม่ผ่าน</span>
+            <span className="block text-2xl font-black text-slate-400 dark:text-slate-500">{totalUnpassedCount}</span>
           </div>
         </div>
       </div>
@@ -186,7 +193,7 @@ export const DegreePlanTab = ({
         
         {!isDegreeLoading && (isDegreeEditMode ? editedCategories : degreePlan.categories).map(category => {
           const completedInCategory = category.courses.reduce((sum, code) => {
-            const completed = completedCourses.find(c => c.course_code === code);
+            const completed = completedCourses.find(c => c.course_code === code && !c.is_reexam);
             if (completed) {
               const course = mr30Courses.find(c => c.code === code);
               return sum + (course?.credit || 3);
@@ -195,8 +202,9 @@ export const DegreePlanTab = ({
           }, 0);
 
           const totalCoursesInCat = category.courses.length;
-          const completedCountInCat = category.courses.filter(code => completedCourses.some(c => c.course_code === code)).length;
-          const unpassedCountInCat = totalCoursesInCat - completedCountInCat;
+          const completedCountInCat = category.courses.filter(code => completedCourses.some(c => c.course_code === code && !c.is_reexam)).length;
+          const reexamCountInCat = category.courses.filter(code => completedCourses.some(c => c.course_code === code && c.is_reexam)).length;
+          const unpassedCountInCat = totalCoursesInCat - completedCountInCat - reexamCountInCat;
 
           return (
             <div key={category.id} className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
@@ -212,7 +220,10 @@ export const DegreePlanTab = ({
                   ) : (
                     <h3 className="font-bold text-gray-900 dark:text-zinc-100">{category.name}</h3>
                   )}
-                  <span className="text-[10px] font-bold text-gray-400 uppercase mt-0.5">เหลืออีก {unpassedCountInCat} วิชา</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">เหลืออีก {unpassedCountInCat} วิชา</span>
+                    {reexamCountInCat > 0 && <span className="text-[10px] font-bold text-orange-500 uppercase">| สอบซ่อม {reexamCountInCat} วิชา</span>}
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {isDegreeEditMode ? (
@@ -234,43 +245,57 @@ export const DegreePlanTab = ({
                   )}
                 </div>
               </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {category.courses.map(courseCode => {
                   const completedData = completedCourses.find(c => c.course_code === courseCode);
-                  const isCompleted = !!completedData;
+                  const isCompleted = !!completedData && !completedData.is_reexam;
+                  const isReExam = !!completedData && completedData.is_reexam;
                   const courseData = mr30Courses.find(c => c.code === courseCode);
                   const gradeOptions = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F'];
 
                   return (
                     <div key={courseCode} className="relative group">
                       <div className={`w-full p-3 md:p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all ${isCompleted
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400 shadow-sm'
-                        : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
+                        ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm'
+                        : isReExam 
+                          ? 'bg-orange-50/50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-900/30 text-orange-700 dark:text-orange-400 shadow-sm'
+                          : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
                         } ${isDegreeEditMode ? 'opacity-50 cursor-default' : ''}`}
                       >
-                        <button
-                          disabled={isDegreeEditMode}
-                          onClick={() => toggleCourseCompletion(courseCode)}
-                          className="flex flex-col items-center gap-1 w-full active:scale-95 transition-transform"
-                        >
-                          <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
-                            {isCompleted && <CheckCircle size={12} />}
-                          </div>
-                          <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-green-800 dark:text-green-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
-                        </button>
+                        <div className="flex flex-col items-center gap-1 w-full">
+                           <button
+                            disabled={isDegreeEditMode}
+                            onClick={() => toggleCourseCompletion(courseCode)}
+                            className="flex flex-col items-center gap-1 w-full active:scale-95 transition-transform"
+                          >
+                            <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
+                              {isCompleted && <CheckCircle size={12} />}
+                            </div>
+                            <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-emerald-800 dark:text-emerald-300' : isReExam ? 'text-orange-800 dark:text-orange-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
+                          </button>
+
+                          {!isDegreeEditMode && (
+                            <button 
+                              onClick={() => toggleReExam(courseCode)}
+                              className={`mt-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${isReExam ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600'}`}
+                            >
+                              {isReExam ? 'รอสอบซ่อม' : 'สอบซ่อม'}
+                            </button>
+                          )}
+                        </div>
 
                         {isCompleted && !isDegreeEditMode && (
                           <select
                             value={completedData.grade || 'A'}
                             onChange={(e) => updateCourseGrade(courseCode, e.target.value)}
-                            className="mt-2 text-[10px] font-bold bg-white dark:bg-zinc-800 border border-green-200 dark:border-green-900/50 rounded px-1.5 py-0.5 text-green-700 dark:text-green-400 outline-none focus:ring-1 focus:ring-green-400 cursor-pointer"
+                            className="mt-2 text-[10px] font-bold bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-900/50 rounded px-1.5 py-0.5 text-emerald-700 dark:text-emerald-400 outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer"
                           >
                             {gradeOptions.map(g => <option key={g} value={g}>{g}</option>)}
                           </select>
                         )}
                         
                         {(!isCompleted || isDegreeEditMode) && (
-                          <span className={`text-[9px] md:text-[10px] font-medium line-clamp-1 text-center ${isCompleted ? 'text-green-600/80 dark:text-green-400/80' : 'text-gray-400 dark:text-zinc-600'}`}>
+                          <span className={`text-[9px] md:text-[10px] font-medium line-clamp-1 text-center mt-1 ${isCompleted ? 'text-emerald-600/80 dark:text-emerald-400/80' : isReExam ? 'text-orange-600/80 dark:text-orange-400/80' : 'text-gray-400 dark:text-zinc-600'}`}>
                             {courseData?.name || 'ไม่ระบุชื่อวิชา'}
                           </span>
                         )}

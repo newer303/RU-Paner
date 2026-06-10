@@ -20,7 +20,8 @@ export async function POST(request: Request) {
       const upsertData = body.courses.map((c: any) => ({
         user_id: userId,
         course_code: c.code,
-        grade: c.grade || null
+        grade: c.grade || null,
+        is_reexam: c.is_reexam || false
       }));
       
       const { error } = await supabase.from('completed_courses').upsert(upsertData);
@@ -30,13 +31,14 @@ export async function POST(request: Request) {
     }
 
     // Single Mode
-    const { courseCode, completed, grade } = body;
+    const { courseCode, completed, grade, is_reexam } = body;
     
-    if (completed) {
+    if (completed || is_reexam) {
       const { error } = await supabase.from('completed_courses').upsert({
         user_id: userId,
         course_code: courseCode,
-        grade: grade || null
+        grade: grade || null,
+        is_reexam: is_reexam || false
       });
       if (error) throw error;
     } else {
