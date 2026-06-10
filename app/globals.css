@@ -71,6 +71,27 @@ body {
     radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0, transparent 50%);
 }
 
+/* Global Interactivity */
+button, 
+a, 
+input[type="button"], 
+input[type="submit"], 
+input[type="checkbox"], 
+input[type="radio"], 
+select,
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* Ensure consistent pointer for custom components */
+.btn-primary,
+.btn-secondary,
+.bento-card,
+.glass {
+  cursor: pointer;
+}
+
 /* Animations */
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(20px); }
