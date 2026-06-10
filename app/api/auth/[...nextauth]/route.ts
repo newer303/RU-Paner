@@ -69,16 +69,15 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
     async session({ session, token }: any) {
-      if (!supabase) return session;
       if (session.user) {
-        const { data: dbUser } = await supabase
-          .from("users")
-          .select("id")
-          .eq("email", session.user.email)
-          .single();
-          
-        session.user.id = dbUser?.id || token.sub;
+        session.user.id = token.id;
       }
       return session;
     },

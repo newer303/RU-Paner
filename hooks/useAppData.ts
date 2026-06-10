@@ -77,7 +77,19 @@ export function useAppData() {
   // --- Data Fetching ---
   const loadAllData = useCallback(async () => {
     setIsDegreeLoading(true);
+    
+    // 1. Try to load courses from cache first for instant UI response
     try {
+      const cachedCourses = localStorage.getItem('mr30Courses');
+      if (cachedCourses) {
+        setMr30Courses(JSON.parse(cachedCourses));
+      }
+    } catch (e) {
+      console.error('Failed to load cached courses', e);
+    }
+
+    try {
+      // 2. Fetch all data
       const [calRes, coursesRes, plannerRes, settingsRes, degreeRes] = await Promise.all([
         fetch('/api/calendar', { cache: 'no-store' }),
         fetch('/api/courses', { cache: 'no-store' }),
@@ -85,12 +97,6 @@ export function useAppData() {
         fetch('/api/settings', { cache: 'no-store' }),
         fetch('/api/degree-plan', { cache: 'no-store' })
       ]);
-
-      if (!calRes.ok) console.error('Fetch failed: /api/calendar', calRes.status);
-      if (!coursesRes.ok) console.error('Fetch failed: /api/courses', coursesRes.status);
-      if (!plannerRes.ok) console.error('Fetch failed: /api/planner', plannerRes.status);
-      if (!settingsRes.ok) console.error('Fetch failed: /api/settings', settingsRes.status);
-      if (!degreeRes.ok) console.error('Fetch failed: /api/degree-plan', degreeRes.status);
 
       if (!calRes.ok || !coursesRes.ok || !plannerRes.ok || !settingsRes.ok || !degreeRes.ok) {
         throw new Error('One or more data fetches failed');
@@ -107,6 +113,13 @@ export function useAppData() {
       setCalendarEvents(calData);
       setMr30Courses(coursesData);
       setSelectedCourses(plannerData);
+
+      // Cache courses for next time
+      try {
+        localStorage.setItem('mr30Courses', JSON.stringify(coursesData));
+      } catch (e) {
+        console.error('Failed to cache courses', e);
+      }
 
       if (settingsData.notifyLine !== undefined) setNotifyLine(settingsData.notifyLine === 'true');
       if (settingsData.notifyEmail !== undefined) setNotifyEmail(settingsData.notifyEmail === 'true');

@@ -6,7 +6,8 @@ import { NavButton } from '@/components/NavButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Calendar, BookMarked, Bell, LayoutDashboard, List, CalendarDays,
-  Smartphone, AlertCircle, CheckCircle, Loader2
+  Smartphone, AlertCircle, CheckCircle, Loader2, LogOut, User as UserIcon,
+  Sparkles, Menu, X as CloseIcon, BookOpen
 } from 'lucide-react';
 import { CalendarTab } from '@/components/CalendarTab';
 import { PlannerTab } from '@/components/PlannerTab';
@@ -18,7 +19,6 @@ import { DashboardTab } from '@/components/DashboardTab';
 import { useAppData } from '@/hooks/useAppData';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { LogOut, User as UserIcon } from 'lucide-react';
 
 // Modals
 import { EventModal } from '@/components/modals/EventModal';
@@ -68,8 +68,15 @@ export default function App() {
 
   const [isPushSupported, setIsPushSupported] = React.useState(false);
   const [isSubscribed, setIsPushSubscribed] = React.useState(false);
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    });
+
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
       setIsPushSupported(true);
       navigator.serviceWorker.ready.then((registration) => {
@@ -87,7 +94,6 @@ export default function App() {
         throw new Error('VAPID Public Key is missing. Please check your environment variables.');
       }
 
-      // Check permission first
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         throw new Error('Permission not granted for notifications.');
@@ -133,6 +139,15 @@ export default function App() {
     }
   };
 
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
+
   function urlBase64ToUint8Array(base64String: string) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -152,8 +167,13 @@ export default function App() {
 
   if (status === 'loading') {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#020617]">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+             <BookMarked size={20} className="text-blue-600 animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -161,235 +181,293 @@ export default function App() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 font-sans text-gray-800 dark:text-zinc-200 transition-colors duration-300">
-      <header className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 sticky top-0 z-40 transition-colors duration-300">
-        <div className="max-w-6xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-1.5 md:p-2 rounded-lg shadow-sm">
-              <BookMarked className="text-white" size={20} />
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-500">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-10 flex flex-col md:flex-row gap-10">
+        {/* Sidebar Navigation */}
+        <aside className="hidden md:block md:w-72 flex-shrink-0 sticky top-10 self-start animate-slide-up">
+          <div className="mb-10 px-4 flex items-center gap-4">
+            <div className="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-blue-500/40 relative group">
+              <div className="absolute inset-0 bg-white/20 rounded-[1.5rem] scale-0 group-hover:scale-100 transition-transform duration-500"></div>
+              <BookMarked size={28} className="text-white relative z-10" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-tight">RU Planner</h1>
-              <p className="hidden md:block text-xs text-gray-500 dark:text-zinc-400">ระบบจัดการตารางเรียนและหลักสูตร ม.รามคำแหง</p>
+              <h1 className="text-2xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">RU Planner</h1>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version 2.0</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
-              <UserIcon size={14} className="text-gray-500 dark:text-zinc-400" />
-              <span className="text-xs font-medium text-gray-700 dark:text-zinc-300 max-w-[120px] truncate">
-                {session.user?.name || session.user?.email}
-              </span>
-            </div>
-            <ThemeToggle />
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="p-1.5 md:p-2 rounded-lg text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-              title="ออกจากระบบ"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-4 md:py-8 flex flex-col md:flex-row gap-8">
-        <aside className="hidden md:block md:w-64 flex-shrink-0 sticky top-24 self-start">
-          <nav className="flex flex-col gap-2">
-            <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="หน้าแรก" />
-            <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="ปฏิทินการศึกษา" />
-            <NavButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookMarked size={20} />} label="รวมรายวิชา" />
+          
+          <nav className="flex flex-col gap-3">
+            <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="หน้าหลัก" />
+            <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="ปฏิทินราม" />
+            <NavButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookMarked size={20} />} label="ค้นหาวิชา" />
             <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="จัดตารางเรียน" />
-            <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="เช็คหลักสูตร" />
-            <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="ตั้งค่าแจ้งเตือน" />
+            <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="แผนการเรียน" />
+            <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="ตั้งค่า" />
           </nav>
+
+          <div className="mt-10 p-8 rounded-[2.5rem] bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-125 transition-transform duration-700">
+               <Sparkles size={80} />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-4">
+                <UserIcon size={14} className="text-blue-500" />
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Active Session</span>
+              </div>
+              <p className="text-sm font-black text-slate-900 dark:text-white truncate mb-4">{session.user?.name || session.user?.email}</p>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="w-full py-3 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 transition-all text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2"
+              >
+                <LogOut size={14} /> Log Out
+              </button>
+            </div>
+          </div>
         </aside>
 
-        <section className="flex-1 min-w-0 pb-24 md:pb-0">
-          {activeTab === 'home' && (
-            <DashboardTab
-              degreePlan={degreePlan}
-              selectedCourses={selectedCourses}
-              calendarEvents={calendarEvents}
-              totalCompletedCredits={totalCompletedCredits}
-              gpax={gpax}
-              onNavigate={setActiveTab}
-              userName={session?.user?.name || ''}
-            />
-          )}
-
-          {activeTab === 'calendar' && (
-            <CalendarTab
-              filterRegion={filterRegion}
-              setFilterRegion={setFilterRegion}
-              filterType={filterType}
-              setFilterType={setFilterType}
-              filteredCalendar={filteredCalendar}
-              handleOpenEventModal={handleOpenEventModal}
-              setConfirmDeleteId={setConfirmDeleteId}
-              getCalendarIcon={getCalendarIcon}
-            />
-          )}
-
-          {activeTab === 'courses' && (
-            isDegreeLoading ? (
-              <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        {/* Mobile Header */}
+        <header className="flex justify-between items-center mb-6 md:hidden animate-slide-up">
+           <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30">
+                <BookMarked size={24} className="text-white" />
               </div>
-            ) : (
-              <CoursesTab 
-                courses={mr30Courses} 
-                onCourseAdded={loadAllData} 
-                showToast={showToast}
-                addCourseToPlanner={addCourseToPlanner}
+              <div>
+                <h1 className="text-xl font-black uppercase tracking-tighter">RU Planner</h1>
+                <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Version 2.0</p>
+              </div>
+           </div>
+           <div className="flex items-center gap-2">
+             <ThemeToggle />
+             <button 
+               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+               className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800"
+             >
+               {isMobileMenuOpen ? <CloseIcon size={20} /> : <Menu size={20} />}
+             </button>
+           </div>
+        </header>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 bg-[#f8fafc]/95 dark:bg-[#020617]/95 backdrop-blur-xl animate-fade-in p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-10">
+              <div className="flex items-center gap-3">
+                <BookMarked className="text-blue-600" size={32} />
+                <h2 className="text-2xl font-black tracking-tighter">MENU</h2>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full">
+                <CloseIcon size={24} />
+              </button>
+            </div>
+            <nav className="flex flex-col gap-4 overflow-y-auto">
+              <NavButton active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }} icon={<LayoutDashboard size={24} />} label="หน้าหลัก" />
+              <NavButton active={activeTab === 'calendar'} onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }} icon={<Calendar size={24} />} label="ปฏิทินราม" />
+              <NavButton active={activeTab === 'courses'} onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }} icon={<BookMarked size={24} />} label="ค้นหาวิชา" />
+              <NavButton active={activeTab === 'planner'} onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }} icon={<CalendarDays size={24} />} label="จัดตารางเรียน" />
+              <NavButton active={activeTab === 'degree'} onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }} icon={<List size={24} />} label="แผนการเรียน" />
+              <NavButton active={activeTab === 'notify'} onClick={() => { setActiveTab('notify'); setIsMobileMenuOpen(false); }} icon={<Bell size={24} />} label="การตั้งค่า" />
+            </nav>
+            <div className="mt-auto py-10 flex flex-col gap-4">
+              <div className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
+                  <UserIcon size={20} className="text-slate-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-slate-900 dark:text-white truncate">{session.user?.name}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{session.user?.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="w-full py-5 rounded-3xl bg-red-600 text-white font-black uppercase tracking-widest shadow-xl shadow-red-500/30 flex items-center justify-center gap-3"
+              >
+                <LogOut size={20} /> SIGN OUT
+              </button>
+            </div>
+          </div>
+        )}
+
+        <section className="flex-1 min-w-0">
+          <div className="hidden md:flex justify-end mb-10 animate-fade-in">
+            <ThemeToggle />
+          </div>
+
+          <div className="relative">
+            {activeTab === 'home' && (
+              <DashboardTab
+                degreePlan={degreePlan}
                 selectedCourses={selectedCourses}
+                calendarEvents={calendarEvents}
+                totalCompletedCredits={totalCompletedCredits}
+                gpax={gpax}
+                onNavigate={setActiveTab}
+                userName={session?.user?.name || ''}
+                deferredPrompt={deferredPrompt}
+                onInstall={handleInstallApp}
               />
-            )
-          )}
+            )}
 
-          {activeTab === 'planner' && (
-            <PlannerTab
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              searchResults={searchResults}
-              addCourseToPlanner={addCourseToPlanner}
-              plannerError={plannerError}
-              selectedCourses={selectedCourses}
-              removeCourseFromPlanner={removeCourseFromPlanner}
-              openManualCourseModal={() => setIsManualCourseModalOpen(true)}
-              calendarEvents={calendarEvents}
-              showToast={showToast}
-            />
-          )}
+            {activeTab === 'calendar' && (
+              <CalendarTab
+                filterRegion={filterRegion}
+                setFilterRegion={setFilterRegion}
+                filterType={filterType}
+                setFilterType={setFilterType}
+                filteredCalendar={filteredCalendar}
+                handleOpenEventModal={handleOpenEventModal}
+                setConfirmDeleteId={setConfirmDeleteId}
+                getCalendarIcon={getCalendarIcon}
+              />
+            )}
 
-          {activeTab === 'degree' && (
-            <DegreePlanTab
-              degreePlan={degreePlan}
-              isDegreeEditMode={isDegreeEditMode}
-              setIsDegreeEditMode={setIsDegreeEditMode}
-              completedCourses={completedCourses}
-              totalCompletedCredits={totalCompletedCredits}
-              toggleCourseCompletion={toggleCourseCompletion}
-              updateCourseGrade={updateCourseGrade}
-              handleDeleteCategory={handleDeleteCategory}
-              handleAddCourse={handleAddCourse}
-              handleDeleteCourse={handleDeleteCourse}
-              handleAddCategory={handleAddCategory}
-              mr30Courses={mr30Courses}
-              handleSaveDegreeSettings={handleSaveDegreeSettings}
-              isDegreeLoading={isDegreeLoading}
-            />
-          )}
-
-          {activeTab === 'notify' && (
-            <div className="animate-fade-in max-w-xl mx-auto md:mx-0">
-              <div className="mb-8">
-                <h2 className="text-xl md:text-2xl font-bold mb-1 text-gray-800 dark:text-zinc-100 flex items-center gap-2">
-                  <Bell className="text-blue-600" size={24} /> ตั้งค่าแจ้งเตือน
-                </h2>
-                <p className="text-gray-500 dark:text-zinc-400 text-sm">รับการแจ้งเตือนวันสอบและวันสำคัญ</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex items-start gap-5">
-                  <div className="bg-[#00B900] p-3 rounded-xl shadow-lg shadow-green-50 dark:shadow-none">
-                    <Smartphone className="text-white" size={24} />
+            {activeTab === 'courses' && (
+              isDegreeLoading ? (
+                <div className="flex h-[60vh] items-center justify-center">
+                   <div className="relative">
+                    <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                       <BookOpen size={20} className="text-blue-600" />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900 dark:text-zinc-100 mb-0.5">LINE แจ้งเตือน</h3>
-                        <p className="text-[13px] text-gray-400 dark:text-zinc-500">รับข้อความแจ้งเตือนผ่าน LINE Notify</p>
+                </div>
+              ) : (
+                <CoursesTab 
+                  courses={mr30Courses} 
+                  onCourseAdded={loadAllData} 
+                  showToast={showToast}
+                  addCourseToPlanner={addCourseToPlanner}
+                  selectedCourses={selectedCourses}
+                />
+              )
+            )}
+
+            {activeTab === 'planner' && (
+              <PlannerTab
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                searchResults={searchResults}
+                addCourseToPlanner={addCourseToPlanner}
+                plannerError={plannerError}
+                selectedCourses={selectedCourses}
+                removeCourseFromPlanner={removeCourseFromPlanner}
+                openManualCourseModal={() => setIsManualCourseModalOpen(true)}
+                calendarEvents={calendarEvents}
+                showToast={showToast}
+              />
+            )}
+
+            {activeTab === 'degree' && (
+              <DegreePlanTab
+                degreePlan={degreePlan}
+                isDegreeEditMode={isDegreeEditMode}
+                setIsDegreeEditMode={setIsDegreeEditMode}
+                handleSaveDegreeSettings={handleSaveDegreeSettings}
+                totalCompletedCredits={totalCompletedCredits}
+                toggleCourseCompletion={toggleCourseCompletion}
+                updateCourseGrade={updateCourseGrade}
+                handleAddCategory={handleAddCategory}
+                handleDeleteCategory={handleDeleteCategory}
+                handleAddCourse={handleAddCourse}
+                handleDeleteCourse={handleDeleteCourse}
+                isDegreeLoading={isDegreeLoading}
+                completedCourses={completedCourses}
+                mr30Courses={mr30Courses}
+              />
+            )}
+
+            {activeTab === 'notify' && (
+              <div className="animate-slide-up space-y-8 max-w-2xl">
+                <div className="flex flex-col gap-2 mb-4">
+                  <h2 className="text-3xl font-black tracking-tighter uppercase">การตั้งค่าแจ้งเตือน</h2>
+                  <p className="text-slate-500 font-medium">จัดการวิธีที่คุณต้องการรับข้อมูลจากเรา</p>
+                </div>
+
+                <div className="grid gap-6">
+                  <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-5">
+                        <div className="bg-[#00B900] p-4 rounded-2xl shadow-lg shadow-green-500/20">
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-6 h-6 invert brightness-0" alt="LINE" />
+                        </div>
+                        <div>
+                          <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">LINE Notify</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">แจ้งเตือนผ่านแอป LINE</p>
+                        </div>
                       </div>
                       <button
                         onClick={() => updateSetting('notifyLine', !notifyLine)}
-                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${notifyLine ? 'bg-[#00B900]' : 'bg-gray-200 dark:bg-zinc-700'}`}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ${notifyLine ? 'bg-[#00B900]' : 'bg-slate-200 dark:bg-slate-800'}`}
                       >
-                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${notifyLine ? 'translate-x-6' : 'translate-x-1'}`} />
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition-transform duration-500 ${notifyLine ? 'translate-x-7' : 'translate-x-1'}`} />
                       </button>
                     </div>
                     {notifyLine && (
-                      <div className="mt-4 animate-fade-in">
-                        <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">LINE Notify Token</label>
+                      <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 animate-slide-up">
+                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">LINE Notify Token</label>
                         <input
                           type="password"
                           value={lineToken}
                           onChange={(e) => updateSetting('lineToken', e.target.value)}
-                          placeholder="วาง Token ที่นี่..."
-                          className="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-green-500 transition-all text-gray-900 dark:text-zinc-100"
+                          placeholder="วาง Token ของคุณที่นี่..."
+                          className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all text-slate-900 dark:text-white font-bold"
                         />
-                        <p className="mt-2 text-[10px] text-gray-400 dark:text-zinc-500 leading-relaxed">คุณสามารถขอ Token ได้ที่ <a href="https://notify-bot.line.me/" target="_blank" rel="noreferrer" className="text-blue-500 underline">notify-bot.line.me</a></p>
                       </div>
                     )}
                   </div>
-                </div>
 
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex items-start gap-5">
-                  <div className="bg-blue-600 p-3 rounded-xl shadow-lg shadow-blue-50 dark:shadow-none">
-                    <Smartphone className="text-white" size={24} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 dark:text-zinc-100 mb-0.5">Browser แจ้งเตือน</h3>
-                    <p className="text-[13px] text-gray-400 dark:text-zinc-500 mb-4">รับการแจ้งเตือนโดยตรงผ่าน Web Browser</p>
-
-                    {!isPushSupported ? (
-                      <p className="text-xs text-red-500 font-medium italic">Browser นี้ไม่รองรับการแจ้งเตือน</p>
-                    ) : isSubscribed ? (
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full flex items-center gap-1.5">
-                          <CheckCircle size={12} /> ลงทะเบียนแล้ว
-                        </span>
+                  <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-5">
+                        <div className="bg-blue-600 p-4 rounded-2xl shadow-lg shadow-blue-500/20">
+                          <Smartphone className="text-white" size={24} />
+                        </div>
+                        <div>
+                          <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">Browser Notify</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">แจ้งเตือนบนเบราว์เซอร์</p>
+                        </div>
+                      </div>
+                      {!isPushSupported ? (
+                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Not Supported</span>
+                      ) : (
                         <button
-                          onClick={testPush}
-                          className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                          onClick={isSubscribed ? testPush : subscribeToPush}
+                          className={`text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full transition-all ${isSubscribed ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' : 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'}`}
                         >
-                          ทดสอบการแจ้งเตือน
+                          {isSubscribed ? 'Test Alert' : 'Enable'}
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={subscribeToPush}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-blue-100 dark:shadow-none"
-                      >
-                        เปิดใช้งานการแจ้งเตือน
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm flex items-start gap-5">
-                  <div className="bg-gray-900 dark:bg-zinc-800 p-3 rounded-xl shadow-lg shadow-gray-100 dark:shadow-none">
-                    <AlertCircle className="text-white" size={24} />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-900 dark:text-zinc-100 mb-0.5">Email แจ้งเตือน</h3>
-                    <p className="text-[13px] text-gray-400 dark:text-zinc-500 mb-4">รับสรุปตารางสอบผ่านทางอีเมล</p>
-                    <button
-                      onClick={() => updateSetting('notifyEmail', !notifyEmail)}
-                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${notifyEmail ? 'bg-blue-600' : 'bg-gray-200 dark:bg-zinc-700'}`}
-                    >
-                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${notifyEmail ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </section>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-t border-gray-100 dark:border-zinc-800 px-2 py-3 flex justify-around items-center z-50">
-        <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="หน้าแรก" />
-        <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="ปฏิทิน" />
-        <NavButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookMarked size={20} />} label="วิชา" />
-        <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="ตาราง" />
-        <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="หลักสูตร" />
-        <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="ตั้งค่า" />
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 z-50">
+        <div className="glass shadow-2xl shadow-slate-900/20 rounded-[2.5rem] border-white/20 px-2 py-3 flex justify-around items-center">
+          <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="HOME" />
+          <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="CAL" />
+          <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="PLAN" />
+          <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="DEGREE" />
+          <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="SET" />
+        </div>
       </nav>
 
+      {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-gray-900/90 dark:bg-zinc-800/90 backdrop-blur-sm text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in flex items-center gap-3">
-          <CheckCircle size={20} className="text-green-400" />
-          <span className="text-sm font-medium">{toastMessage}</span>
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[100] animate-slide-up">
+           <div className="glass px-8 py-4 rounded-[2rem] shadow-2xl border-white/40 flex items-center gap-4">
+             <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                <CheckCircle size={18} />
+             </div>
+             <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{toastMessage}</span>
+           </div>
         </div>
       )}
 
@@ -401,30 +479,26 @@ export default function App() {
         setFormData={setEventFormData}
         onSave={handleSaveEvent}
       />
-
       <DeleteConfirmModal
-        isOpen={!!confirmDeleteId}
+        isOpen={confirmDeleteId !== null}
         onClose={() => setConfirmDeleteId(null)}
         onConfirm={handleDeleteEvent}
       />
-
       <AddCourseModal
         isOpen={isAddCourseModalOpen}
         onClose={() => setIsAddCourseModalOpen(false)}
+        onAddCourse={confirmAddCourseToCategory}
         searchQuery={courseSearchQuery}
         setSearchQuery={setCourseSearchQuery}
         searchResults={degreeSearchResults}
-        onAddCourse={confirmAddCourseToCategory}
       />
-
       <AddCategoryModal
         isOpen={isAddCategoryModalOpen}
         onClose={closeAddCategoryModal}
+        onConfirm={confirmAddCategory}
         categoryName={newCategoryName}
         setCategoryName={setNewCategoryName}
-        onConfirm={confirmAddCategory}
       />
-
       <ManualCourseModal
         isOpen={isManualCourseModalOpen}
         onClose={() => setIsManualCourseModalOpen(false)}
@@ -432,18 +506,6 @@ export default function App() {
         setFormData={setManualCourseData}
         onSave={handleSaveManualCourse}
       />
-
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        .animate-scale-up { animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-shake { animation: shake 0.4s ease-in-out; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
     </div>
   );
 }

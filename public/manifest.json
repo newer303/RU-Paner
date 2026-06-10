@@ -12,6 +12,12 @@
     {
       "src": "/globe.svg",
       "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/globe.svg",
+      "type": "image/svg+xml",
       "sizes": "512x512",
       "purpose": "any"
     },
@@ -20,6 +26,21 @@
       "type": "image/svg+xml",
       "sizes": "512x512",
       "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "ตารางเรียน",
+      "short_name": "ตารางเรียน",
+      "url": "/?tab=planner",
+      "icons": [{ "src": "/globe.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "แผนการเรียน",
+      "short_name": "แผนการเรียน",
+      "url": "/?tab=degree",
+      "icons": [{ "src": "/globe.svg", "sizes": "192x192" }]
     }
   ]
 }

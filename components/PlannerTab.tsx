@@ -190,6 +190,70 @@ export const PlannerTab = ({
           </ul>
         )}
       </div>
+
+      {/* Exam Schedule Summary */}
+      {selectedCourses.length > 0 && (
+        <div className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl shadow-sm overflow-hidden mb-12">
+          <div className="bg-red-50/50 dark:bg-red-900/10 px-5 py-4 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center">
+            <h3 className="font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-tight flex items-center gap-2">
+              <AlertCircle size={18} className="text-red-500" /> ตารางสอบของคุณ
+            </h3>
+            <span className="text-[11px] bg-red-600 dark:bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-wider">
+              {selectedCourses.filter(c => c.examDate).length} วิชาที่มีสอบ
+            </span>
+          </div>
+
+          <div className="p-0">
+            {selectedCourses.filter(c => c.examDate).length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-gray-50/50 dark:bg-zinc-800/30 text-gray-500 dark:text-zinc-400 font-bold text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="px-6 py-3">วันที่สอบ</th>
+                      <th className="px-6 py-3">รหัสวิชา</th>
+                      <th className="px-6 py-3">ชื่อวิชา</th>
+                      <th className="px-6 py-3">เวลาสอบ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 dark:divide-zinc-800">
+                    {selectedCourses
+                      .filter(c => c.examDate)
+                      .sort((a, b) => new Date(a.examDate).getTime() - new Date(b.examDate).getTime())
+                      .map((course, idx, arr) => {
+                        const hasConflict = arr.some((c, i) => i !== idx && c.examDate === course.examDate && c.examTime === course.examTime);
+                        return (
+                          <tr key={course.code} className={`hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 transition-colors ${hasConflict ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="font-bold text-gray-900 dark:text-zinc-100">{course.examDate}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 py-1 rounded-md text-[11px] font-black ${hasConflict ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'}`}>
+                                {course.code}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="text-gray-600 dark:text-zinc-300 line-clamp-1">{course.name}</p>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className={`font-bold ${hasConflict ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-zinc-200'}`}>{course.examTime}</span>
+                                {hasConflict && <span className="text-[9px] text-red-500 font-black uppercase tracking-tighter">⚠️ วันสอบซ้ำซ้อน!</span>}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-10 text-center">
+                <p className="text-gray-400 dark:text-zinc-500 text-sm italic">ยังไม่มีวิชาที่มีข้อมูลการสอบ</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

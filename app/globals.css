@@ -3,37 +3,112 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --border: #e2e8f0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #020617;
+  --foreground: #f8fafc;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --border: #1e293b;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
 }
 
-/* Smooth Theme Transitions */
-*, *::before, *::after {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-  transition-duration: 400ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Disable transitions on page load if needed, but next-themes handles it mostly. 
-   We add a specific class for the "pop" effect on icons */
+.dark .glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Bento Grid Card */
+.bento-card {
+  @apply relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1;
+}
+
+/* Mesh Gradients */
+.mesh-gradient {
+  background-color: #2563eb;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225, 39%, 23%, 1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(225, 39%, 33%, 1) 0, transparent 50%);
+}
+
+.mesh-gradient-soft {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0, transparent 50%), 
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.05) 0, transparent 50%);
+}
+
+/* Animations */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Theme Icon Animation */
 .theme-icon-enter {
   animation: theme-icon-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -43,7 +118,11 @@ body {
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
-button, 
-select {
-  cursor: pointer;
+/* Buttons */
+.btn-primary {
+  @apply relative inline-flex items-center justify-center px-6 py-3 font-bold text-white transition-all duration-300 bg-blue-600 rounded-2xl hover:bg-blue-700 active:scale-[0.97] shadow-lg shadow-blue-500/25;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center px-6 py-3 font-bold transition-all duration-300 border-2 border-slate-200 dark:border-slate-800 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 active:scale-[0.97];
 }
