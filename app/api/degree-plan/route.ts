@@ -18,7 +18,7 @@ export async function GET() {
       supabase.from('settings').select('value').eq('user_id', userId).eq('key', 'major').single(),
       supabase.from('settings').select('value').eq('user_id', userId).eq('key', 'totalCredits').single(),
       supabase.from('degree_categories').select('*').eq('user_id', userId),
-      supabase.from('completed_courses').select('course_code, grade').eq('user_id', userId)
+      supabase.from('completed_courses').select('course_code, grade, is_reexam').eq('user_id', userId)
     ]);
 
     const major = majorRes.data?.value || 'ยังไม่ได้ระบุชื่อหลักสูตร';

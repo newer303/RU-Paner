@@ -53,8 +53,12 @@ CREATE TABLE IF NOT EXISTS public.completed_courses (
   user_id TEXT DEFAULT 'global',
   course_code TEXT, 
   grade TEXT,
+  is_reexam BOOLEAN DEFAULT FALSE,
   PRIMARY KEY(user_id, course_code)
 );
+
+-- หากคุณมีตาราง completed_courses อยู่แล้ว ให้รันคำสั่งนี้เพื่อเพิ่มคอลัมน์ is_reexam:
+-- ALTER TABLE public.completed_courses ADD COLUMN IF NOT EXISTS is_reexam BOOLEAN DEFAULT FALSE;
 
 -- 7. ตารางฐานข้อมูลวิชาทั้งหมด (Master Data)
 CREATE TABLE IF NOT EXISTS public.courses (
