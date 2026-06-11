@@ -14,25 +14,32 @@ export async function GET() {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id || 'global';
 
+    // Fetch basic settings and data
     const [majorRes, totalCreditsRes, categoriesRes, completedRes] = await Promise.all([
-      supabase.from('settings').select('value').eq('user_id', userId).eq('key', 'major').single(),
-      supabase.from('settings').select('value').eq('user_id', userId).eq('key', 'totalCredits').single(),
+      supabase.from('settings').select('value').eq('user_id', userId).eq('key', 'major').maybeSingle(),
+      supabase.from('settings').select('value').eq('user_id', userId).eq('key', 'totalCredits').maybeSingle(),
       supabase.from('degree_categories').select('*').eq('user_id', userId),
       supabase.from('completed_courses').select('course_code, grade, is_reexam').eq('user_id', userId)
     ]);
+
+    if (categoriesRes.error) console.error('Error fetching categories:', categoriesRes.error);
+    if (completedRes.error) console.error('Error fetching completed courses:', completedRes.error);
 
     const major = majorRes.data?.value || 'ยังไม่ได้ระบุชื่อหลักสูตร';
     const totalCredits = parseInt(totalCreditsRes.data?.value || "0") || 0;
     const categories = categoriesRes.data || [];
     const completedCourses = completedRes.data || [] as CompletedCourse[];
 
+    // Fetch courses for each category in a single query if possible, or keep this for now
     const categoriesWithCourses = await Promise.all(categories.map(async (cat: any) => {
-      const { data: courses } = await supabase
+      const { data: courses, error: coursesError } = await supabase
         .from('degree_courses')
         .select('course_code')
         .eq('category_id', cat.id)
         .eq('user_id', userId);
         
+      if (coursesError) console.error(`Error fetching courses for category ${cat.id}:`, coursesError);
+
       return {
         ...cat,
         id: String(cat.id),
@@ -47,7 +54,7 @@ export async function GET() {
       completedCourses
     });
   } catch (error: any) {
-    console.error('Error in GET /api/degree-plan:', error);
+    console.error('CRITICAL ERROR in GET /api/degree-plan:', error);
     return NextResponse.json({ error: 'Failed to fetch degree plan', details: error.message }, { status: 500 });
   }
 }
