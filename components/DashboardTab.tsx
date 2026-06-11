@@ -39,7 +39,13 @@ export const DashboardTab = ({
   const upcomingExams = useMemo(() => {
     return selectedCourses
       .filter(c => c.examDate)
-      .sort((a, b) => new Date(a.examDate).getTime() - new Date(b.examDate).getTime())
+      .sort((a, b) => {
+        const dateA = new Date(a.examDate).getTime();
+        const dateB = new Date(b.examDate).getTime();
+        if (isNaN(dateA)) return 1;
+        if (isNaN(dateB)) return -1;
+        return dateA - dateB;
+      })
       .slice(0, 3);
   }, [selectedCourses]);
 

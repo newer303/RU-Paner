@@ -75,6 +75,14 @@ CREATE TABLE IF NOT EXISTS public.planner_courses (
   PRIMARY KEY(user_id, course_code)
 );
 
+-- 9. ตารางแผนการเรียนในแต่ละเทอม (Roadmap)
+CREATE TABLE IF NOT EXISTS public.semester_plans (
+  user_id TEXT DEFAULT 'global',
+  semester_id TEXT,
+  course_code TEXT,
+  PRIMARY KEY(user_id, semester_id, course_code)
+);
+
 -- ==========================================
 -- ตั้งค่าสิทธิ์การเข้าถึง (Row Level Security)
 -- ==========================================
@@ -88,6 +96,7 @@ ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.completed_courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.planner_courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.semester_plans ENABLE ROW LEVEL SECURITY;
 
 -- สร้างนโยบายให้ทุกคนเข้าถึงได้ (สำหรับการเริ่มต้นใช้งานอย่างรวดเร็ว)
 -- หมายเหตุ: ในระบบจริงควรตั้งค่าให้เฉพาะเจ้าของข้อมูล (user_id) เข้าถึงได้เท่านั้น
@@ -99,3 +108,4 @@ CREATE POLICY "Allow all access" ON public.events FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON public.completed_courses FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON public.courses FOR ALL USING (true);
 CREATE POLICY "Allow all access" ON public.planner_courses FOR ALL USING (true);
+CREATE POLICY "Allow all access" ON public.semester_plans FOR ALL USING (true);

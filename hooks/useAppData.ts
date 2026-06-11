@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   CalendarEvent, Course, DegreePlan, DegreeCategory,
-  Status, EventFormData, PlannerCourse, CompletedCourse
+  Status, EventFormData, PlannerCourse, CompletedCourse, SemesterPlan
 } from '@/types';
 import { getEventStatus, formatThaiDateRange, calculateGPAX } from '@/lib/utils';
 
@@ -63,6 +63,9 @@ export function useAppData() {
   const [targetCategoryId, setTargetCategoryId] = useState<string | null>(null);
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
 
+  // Roadmap State
+  const [semesterRoadmap, setSemesterRoadmap] = useState<SemesterPlan[]>([]);
+
   // Notifications State
   const [notifyLine, setNotifyLine] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(false);
@@ -90,29 +93,39 @@ export function useAppData() {
 
     try {
       // 2. Fetch all data
-      const [calRes, coursesRes, plannerRes, settingsRes, degreeRes] = await Promise.all([
+      const [calRes, coursesRes, plannerRes, settingsRes, degreeRes, roadmapRes] = await Promise.all([
         fetch('/api/calendar', { cache: 'no-store' }),
         fetch('/api/courses', { cache: 'no-store' }),
         fetch('/api/planner', { cache: 'no-store' }),
         fetch('/api/settings', { cache: 'no-store' }),
-        fetch('/api/degree-plan', { cache: 'no-store' })
+        fetch('/api/degree-plan', { cache: 'no-store' }),
+        fetch('/api/roadmap', { cache: 'no-store' })
       ]);
 
-      if (!calRes.ok || !coursesRes.ok || !plannerRes.ok || !settingsRes.ok || !degreeRes.ok) {
-        throw new Error('One or more data fetches failed');
+      if (!calRes.ok || !coursesRes.ok || !plannerRes.ok || !settingsRes.ok || !degreeRes.ok || !roadmapRes.ok) {
+        const failed = [];
+        if (!calRes.ok) failed.push('/api/calendar');
+        if (!coursesRes.ok) failed.push('/api/courses');
+        if (!plannerRes.ok) failed.push('/api/planner');
+        if (!settingsRes.ok) failed.push('/api/settings');
+        if (!degreeRes.ok) failed.push('/api/degree-plan');
+        if (!roadmapRes.ok) failed.push('/api/roadmap');
+        throw new Error(`Data fetch failed for: ${failed.join(', ')}`);
       }
 
-      const [calData, coursesData, plannerData, settingsData, degreeData] = await Promise.all([
+      const [calData, coursesData, plannerData, settingsData, degreeData, roadmapData] = await Promise.all([
         calRes.json(),
         coursesRes.json(),
         plannerRes.json(),
         settingsRes.json(),
-        degreeRes.json()
+        degreeRes.json(),
+        roadmapRes.json()
       ]);
 
       setCalendarEvents(calData);
       setMr30Courses(coursesData);
       setSelectedCourses(plannerData);
+      setSemesterRoadmap(roadmapData);
 
       // Cache courses for next time
       try {
@@ -157,6 +170,58 @@ export function useAppData() {
     } catch (err) {
       console.error(err);
       showToast('ไม่สามารถบันทึกการตั้งค่าได้');
+    }
+  };
+
+  // --- Roadmap Logic ---
+  const addCourseToSemester = async (semesterId: string, courseCode: string) => {
+    try {
+      const res = await fetch('/api/roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ semesterId, courseCode }),
+      });
+      if (!res.ok) throw new Error('Add to roadmap failed');
+      await loadAllData();
+      showToast(`เพิ่มวิชา ${courseCode} ลงแผนเทอม ${semesterId} แล้ว`);
+    } catch (err) {
+      showToast('เพิ่มวิชาลงแผนไม่สำเร็จ');
+    }
+  };
+
+  const removeCourseFromSemester = async (semesterId: string, courseCode: string) => {
+    try {
+      const res = await fetch(`/api/roadmap?semesterId=${semesterId}&courseCode=${courseCode}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Remove from roadmap failed');
+      await loadAllData();
+    } catch (err) {
+      showToast('ลบวิชาจากแผนไม่สำเร็จ');
+    }
+  };
+
+  const removeSemester = async (semesterId: string) => {
+    try {
+      const res = await fetch(`/api/roadmap?semesterId=${semesterId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Remove semester failed');
+      await loadAllData();
+      showToast(`ลบแผนเทอม ${semesterId} เรียบร้อยแล้ว`);
+    } catch (err) {
+      showToast('ลบเทอมไม่สำเร็จ');
+    }
+  };
+
+  const moveCourseToSemester = async (courseCode: string, oldSemesterId: string, newSemesterId: string) => {
+    try {
+      const res = await fetch('/api/roadmap', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseCode, oldSemesterId, newSemesterId }),
+      });
+      if (!res.ok) throw new Error('Move course failed');
+      await loadAllData();
+      showToast(`ย้ายวิชา ${courseCode} ไปเทอม ${newSemesterId} แล้ว`);
+    } catch (err) {
+      showToast('ย้ายวิชาไม่สำเร็จ');
     }
   };
 
@@ -570,6 +635,7 @@ export function useAppData() {
     searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
     totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
+    semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, removeSemester,
     handleAddCategory, closeAddCategoryModal, confirmAddCategory, handleDeleteCategory,
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse
   };

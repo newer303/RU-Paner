@@ -74,8 +74,9 @@ export const DegreePlanTab = ({
   const handleToggleEditMode = () => {
     if (isDegreeEditMode) {
       handleSaveDegreeSettings(editedMajor, editedTotalCredits, editedCategories);
+    } else {
+      setIsDegreeEditMode(true);
     }
-    setIsDegreeEditMode(!isDegreeEditMode);
   };
 
   const updateCategoryRequired = (id: string, required: number) => {

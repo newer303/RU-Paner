@@ -7,13 +7,14 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Calendar, BookMarked, Bell, LayoutDashboard, List, CalendarDays,
   Smartphone, AlertCircle, CheckCircle, Loader2, LogOut, User as UserIcon,
-  Sparkles, Menu, X as CloseIcon, BookOpen
+  Sparkles, Menu, X as CloseIcon, BookOpen, Layers
 } from 'lucide-react';
 import { CalendarTab } from '@/components/CalendarTab';
 import { PlannerTab } from '@/components/PlannerTab';
 import { DegreePlanTab } from '@/components/DegreePlanTab';
 import { CoursesTab } from '@/components/CoursesTab';
 import { DashboardTab } from '@/components/DashboardTab';
+import { RoadmapTab } from '@/components/RoadmapTab';
 
 // Hooks
 import { useAppData } from '@/hooks/useAppData';
@@ -26,6 +27,26 @@ import { DeleteConfirmModal } from '@/components/modals/DeleteConfirmModal';
 import { AddCourseModal } from '@/components/modals/AddCourseModal';
 import { AddCategoryModal } from '@/components/modals/AddCategoryModal';
 import { ManualCourseModal } from '@/components/modals/ManualCourseModal';
+
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export default function App() {
   const { data: session, status } = useSession();
@@ -61,6 +82,7 @@ export default function App() {
     searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
     totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
+    semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, removeSemester,
     handleAddCategory, closeAddCategoryModal, confirmAddCategory, handleDeleteCategory,
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse,
     showToast
@@ -68,14 +90,16 @@ export default function App() {
 
   const [isPushSupported, setIsPushSupported] = React.useState(false);
   const [isSubscribed, setIsPushSubscribed] = React.useState(false);
-  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = React.useState<BeforeInstallPromptEvent | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
-    });
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
       setIsPushSupported(true);
@@ -85,6 +109,10 @@ export default function App() {
         });
       });
     }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
 
   const subscribeToPush = async () => {
@@ -148,17 +176,6 @@ export default function App() {
     }
   };
 
-  function urlBase64ToUint8Array(base64String: string) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-
   React.useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
@@ -171,7 +188,7 @@ export default function App() {
         <div className="relative">
           <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-             <BookMarked size={20} className="text-blue-600 animate-pulse" />
+            <BookMarked size={20} className="text-blue-600 animate-pulse" />
           </div>
         </div>
       </div>
@@ -198,10 +215,11 @@ export default function App() {
               </div>
             </div>
           </div>
-          
+
           <nav className="flex flex-col gap-3">
             <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="หน้าหลัก" />
             <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="ปฏิทินราม" />
+            <NavButton active={activeTab === 'roadmap'} onClick={() => setActiveTab('roadmap')} icon={<Layers size={20} />} label="Roadmap" />
             <NavButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookMarked size={20} />} label="ค้นหาวิชา" />
             <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="จัดตารางเรียน" />
             <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="แผนการเรียน" />
@@ -210,7 +228,7 @@ export default function App() {
 
           <div className="mt-10 p-8 rounded-[2.5rem] bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 shadow-sm relative overflow-hidden group">
             <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-125 transition-transform duration-700">
-               <Sparkles size={80} />
+              <Sparkles size={80} />
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-4">
@@ -230,24 +248,24 @@ export default function App() {
 
         {/* Mobile Header */}
         <header className="flex justify-between items-center mb-6 md:hidden animate-slide-up">
-           <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30">
-                <BookMarked size={24} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-black uppercase tracking-tighter">RU Planner</h1>
-                <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Version 2.0</p>
-              </div>
-           </div>
-           <div className="flex items-center gap-2">
-             <ThemeToggle />
-             <button 
-               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-               className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800"
-             >
-               {isMobileMenuOpen ? <CloseIcon size={20} /> : <Menu size={20} />}
-             </button>
-           </div>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30">
+              <BookMarked size={24} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black uppercase tracking-tighter">RU Planner</h1>
+              <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Version 2.0</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800"
+            >
+              {isMobileMenuOpen ? <CloseIcon size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </header>
 
         {/* Mobile Navigation Menu */}
@@ -265,6 +283,7 @@ export default function App() {
             <nav className="flex flex-col gap-4 overflow-y-auto">
               <NavButton active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }} icon={<LayoutDashboard size={24} />} label="หน้าหลัก" />
               <NavButton active={activeTab === 'calendar'} onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }} icon={<Calendar size={24} />} label="ปฏิทินราม" />
+              <NavButton active={activeTab === 'roadmap'} onClick={() => { setActiveTab('roadmap'); setIsMobileMenuOpen(false); }} icon={<Layers size={24} />} label="Roadmap" />
               <NavButton active={activeTab === 'courses'} onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }} icon={<BookMarked size={24} />} label="ค้นหาวิชา" />
               <NavButton active={activeTab === 'planner'} onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }} icon={<CalendarDays size={24} />} label="จัดตารางเรียน" />
               <NavButton active={activeTab === 'degree'} onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }} icon={<List size={24} />} label="แผนการเรียน" />
@@ -323,20 +342,31 @@ export default function App() {
               />
             )}
 
+            {activeTab === 'roadmap' && (
+              <RoadmapTab
+                roadmap={semesterRoadmap}
+                mr30Courses={mr30Courses}
+                onAddCourse={addCourseToSemester}
+                onRemoveCourse={removeCourseFromSemester}
+                onMoveCourse={moveCourseToSemester}
+                onRemoveSemester={removeSemester}
+              />
+            )}
+
             {activeTab === 'courses' && (
               isDegreeLoading ? (
                 <div className="flex h-[60vh] items-center justify-center">
-                   <div className="relative">
+                  <div className="relative">
                     <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                       <BookOpen size={20} className="text-blue-600" />
+                      <BookOpen size={20} className="text-blue-600" />
                     </div>
                   </div>
                 </div>
               ) : (
-                <CoursesTab 
-                  courses={mr30Courses} 
-                  onCourseAdded={loadAllData} 
+                <CoursesTab
+                  courses={mr30Courses}
+                  onCourseAdded={loadAllData}
                   showToast={showToast}
                   addCourseToPlanner={addCourseToPlanner}
                   selectedCourses={selectedCourses}
@@ -453,7 +483,7 @@ export default function App() {
       <nav className="md:hidden fixed bottom-6 left-6 right-6 z-50">
         <div className="glass shadow-2xl shadow-slate-900/20 rounded-[2.5rem] border-white/20 px-2 py-3 flex justify-around items-center">
           <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="HOME" />
-          <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="CAL" />
+          <NavButton active={activeTab === 'roadmap'} onClick={() => setActiveTab('roadmap')} icon={<Layers size={20} />} label="ROAD" />
           <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="PLAN" />
           <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="DEGREE" />
           <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="SET" />
@@ -463,12 +493,12 @@ export default function App() {
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[100] animate-slide-up">
-           <div className="glass px-8 py-4 rounded-[2rem] shadow-2xl border-white/40 flex items-center gap-4">
-             <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                <CheckCircle size={18} />
-             </div>
-             <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{toastMessage}</span>
-           </div>
+          <div className="glass px-8 py-4 rounded-[2rem] shadow-2xl border-white/40 flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+              <CheckCircle size={18} />
+            </div>
+            <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{toastMessage}</span>
+          </div>
         </div>
       )}
 

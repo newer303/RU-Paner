@@ -33,6 +33,11 @@ export interface CompletedCourse {
   is_reexam?: boolean;
 }
 
+export interface SemesterPlan {
+  semester_id: string; // e.g. "1/2567"
+  courses: Course[];
+}
+
 export interface DegreePlan {
   major: string;
   totalCredits: number;

@@ -17,19 +17,23 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   // Check if it's an API call
   if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clonedResponse = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clonedResponse);
-          });
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
+    if (event.request.method === 'GET') {
+      event.respondWith(
+        fetch(event.request)
+          .then((response) => {
+            const clonedResponse = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clonedResponse);
+            });
+            return response;
+          })
+          .catch(() => {
+            return caches.match(event.request);
+          })
+      );
+    } else {
+      event.respondWith(fetch(event.request));
+    }
   } else {
     // Static assets
     event.respondWith(
