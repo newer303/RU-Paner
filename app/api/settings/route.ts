@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       user_id: userId,
       key,
       value: value.toString()
-    });
+    }, { onConflict: 'user_id, key' });
 
     if (error) throw error;
     

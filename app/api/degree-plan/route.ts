@@ -66,10 +66,10 @@ export async function PUT(request: Request) {
 
     // 1. Update Settings
     if (major !== undefined) {
-      await supabase.from('settings').upsert({ user_id: userId, key: 'major', value: major });
+      await supabase.from('settings').upsert({ user_id: userId, key: 'major', value: major }, { onConflict: 'user_id, key' });
     }
     if (totalCredits !== undefined) {
-      await supabase.from('settings').upsert({ user_id: userId, key: 'totalCredits', value: String(totalCredits) });
+      await supabase.from('settings').upsert({ user_id: userId, key: 'totalCredits', value: String(totalCredits) }, { onConflict: 'user_id, key' });
     }
 
     // 2. Sync Categories if provided
@@ -101,7 +101,7 @@ export async function PUT(request: Request) {
           required: cat.required
         }));
         
-        await supabase.from('degree_categories').upsert(upsertData);
+        await supabase.from('degree_categories').upsert(upsertData, { onConflict: 'user_id, id' });
       }
     }
 

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         is_reexam: c.is_reexam || false
       }));
       
-      const { error } = await supabase.from('completed_courses').upsert(upsertData);
+      const { error } = await supabase.from('completed_courses').upsert(upsertData, { onConflict: 'user_id, course_code' });
       if (error) throw error;
       
       return NextResponse.json({ success: true, count: body.courses.length });
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
         course_code: courseCode,
         grade: grade || null,
         is_reexam: is_reexam || false
-      });
+      }, { onConflict: 'user_id, course_code' });
       if (error) throw error;
     } else {
       const { error } = await supabase
