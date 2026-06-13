@@ -331,7 +331,7 @@ export default function App() {
                 className="group w-full py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/10 border border-slate-100 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-900/30 text-slate-600 dark:text-slate-400 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
               >
                 <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" /> 
-                <span className="font-black text-[9px] uppercase tracking-[0.2em]">Logout Session</span>
+                <span className="font-black text-[9px] uppercase tracking-[0.2em]">Logout</span>
               </button>
             </div>
             
