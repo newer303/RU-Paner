@@ -40,21 +40,27 @@ export async function GET() {
     if (coursesError) throw coursesError;
 
     // Group by semester
-    const grouped = plansData.reduce((acc: any, item: any) => {
-      if (!acc[item.semester_id]) {
-        acc[item.semester_id] = {
+    const groupedMap = new Map();
+    
+    plansData.forEach((item: any) => {
+      if (!groupedMap.has(item.semester_id)) {
+        groupedMap.set(item.semester_id, {
           semester_id: item.semester_id,
           courses: []
-        };
+        });
       }
+      
       const courseDetails = courses?.find((c: any) => c.code === item.course_code);
       if (courseDetails) {
-        acc[item.semester_id].courses.push(courseDetails);
+        // Prevent duplicate courses in the same semester if database has inconsistencies
+        const exists = groupedMap.get(item.semester_id).courses.some((c: any) => c.code === courseDetails.code);
+        if (!exists) {
+          groupedMap.get(item.semester_id).courses.push(courseDetails);
+        }
       }
-      return acc;
-    }, {});
+    });
 
-    return NextResponse.json(Object.values(grouped));
+    return NextResponse.json(Array.from(groupedMap.values()));
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to fetch roadmap' }, { status: 500 });
@@ -131,11 +137,26 @@ export async function PUT(request: Request) {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id || 'global';
 
-    const { oldSemesterId, newSemesterId, courseCode } = await request.json();
+    const { oldSemesterId, newSemesterId, courseCode, action } = await request.json();
     
-    if (!oldSemesterId || !newSemesterId || !courseCode) {
+    if (!oldSemesterId || !newSemesterId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    if (action === 'renameSemester') {
+      // Update ALL courses for this semester ID
+      const { error } = await supabase
+        .from('semester_plans')
+        .update({ semester_id: newSemesterId })
+        .eq('user_id', userId)
+        .eq('semester_id', oldSemesterId);
+
+      if (error) throw error;
+      return NextResponse.json({ success: true });
+    }
+
+    // Default: move single course
+    if (!courseCode) return NextResponse.json({ error: 'courseCode required for move' }, { status: 400 });
 
     const { error } = await supabase
       .from('semester_plans')
@@ -149,6 +170,6 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Failed to move course' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update roadmap' }, { status: 500 });
   }
 }

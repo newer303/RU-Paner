@@ -210,6 +210,21 @@ export function useAppData() {
     }
   };
 
+  const renameSemester = async (oldSemesterId: string, newSemesterId: string) => {
+    try {
+      const res = await fetch('/api/roadmap', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldSemesterId, newSemesterId, action: 'renameSemester' }),
+      });
+      if (!res.ok) throw new Error('Rename semester failed');
+      await loadAllData();
+      showToast(`เปลี่ยนชื่อเทอมเป็น ${newSemesterId} แล้ว`);
+    } catch (err) {
+      showToast('เปลี่ยนชื่อเทอมไม่สำเร็จ');
+    }
+  };
+
   const moveCourseToSemester = async (courseCode: string, oldSemesterId: string, newSemesterId: string) => {
     try {
       const res = await fetch('/api/roadmap', {
@@ -635,7 +650,7 @@ export function useAppData() {
     searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
     totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
-    semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, removeSemester,
+    semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, renameSemester, removeSemester,
     handleAddCategory, closeAddCategoryModal, confirmAddCategory, handleDeleteCategory,
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse
   };

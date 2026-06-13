@@ -14,7 +14,8 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "text" }
       },
       async authorize(credentials) {
         if (!supabase) return null;
@@ -36,7 +37,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           name: user.name,
           email: user.email,
-          image: user.image
+          image: user.image,
+          rememberMe: credentials.rememberMe === 'true'
         };
       }
     })
@@ -72,6 +74,11 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
+        token.rememberMe = user.rememberMe;
+      }
+      // Shorten token lifespan if not remembered
+      if (token.rememberMe === false) {
+         token.exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 1 day
       }
       return token;
     },

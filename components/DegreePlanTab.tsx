@@ -1,6 +1,6 @@
 'use client';
-import { List, Trash2, CheckCircle, Plus, X, AlertCircle } from 'lucide-react';
-import { DegreePlan, Course, DegreeCategory, CompletedCourse } from '@/types';
+import { List, Trash2, CheckCircle, Plus, X, AlertCircle, Calendar } from 'lucide-react';
+import { DegreePlan, Course, DegreeCategory, CompletedCourse, SemesterPlan } from '@/types';
 import { useState, useEffect } from 'react';
 
 interface DegreePlanTabProps {
@@ -19,6 +19,7 @@ interface DegreePlanTabProps {
   mr30Courses: Course[];
   handleSaveDegreeSettings: (major: string, totalCredits: number, categories: DegreeCategory[]) => void;
   isDegreeLoading?: boolean;
+  semesterRoadmap?: SemesterPlan[];
 }
 
 export const DegreePlanTab = ({
@@ -36,12 +37,15 @@ export const DegreePlanTab = ({
   handleAddCategory,
   mr30Courses = [],
   handleSaveDegreeSettings,
-  isDegreeLoading
+  isDegreeLoading,
+  semesterRoadmap = []
 }: DegreePlanTabProps) => {
   const [editedMajor, setEditedMajor] = useState(degreePlan.major);
   const [editedTotalCredits, setEditedTotalCredits] = useState(degreePlan.totalCredits);
   const [editedCategories, setEditedCategories] = useState(degreePlan.categories);
   const [confirmDeleteCategoryId, setConfirmDeleteCategoryId] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<{ courseCode: string; fromCategoryId: string } | null>(null);
+  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
 
   // Sync initial state when starting edit mode
   useEffect(() => {
@@ -77,6 +81,44 @@ export const DegreePlanTab = ({
     } else {
       setIsDegreeEditMode(true);
     }
+  };
+
+  const handleDragStart = (courseCode: string, fromCategoryId: string) => {
+    if (!isDegreeEditMode) return;
+    setDraggedItem({ courseCode, fromCategoryId });
+  };
+
+  const handleDragOver = (e: React.DragEvent, categoryId: string) => {
+    if (!isDegreeEditMode || !draggedItem) return;
+    e.preventDefault();
+    setDragOverCategoryId(categoryId);
+  };
+
+  const handleDrop = (toCategoryId: string) => {
+    if (!isDegreeEditMode || !draggedItem) return;
+    const { courseCode, fromCategoryId } = draggedItem;
+
+    if (fromCategoryId !== toCategoryId) {
+      setEditedCategories(prev => {
+        return prev.map(cat => {
+          if (cat.id === fromCategoryId) {
+            return { ...cat, courses: cat.courses.filter(code => code !== courseCode) };
+          }
+          if (cat.id === toCategoryId) {
+            if (cat.courses.includes(courseCode)) return cat;
+            return { ...cat, courses: [...cat.courses, courseCode] };
+          }
+          return cat;
+        });
+      });
+    }
+
+    setDraggedItem(null);
+    setDragOverCategoryId(null);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverCategoryId(null);
   };
 
   const updateCategoryRequired = (id: string, required: number) => {
@@ -208,7 +250,13 @@ export const DegreePlanTab = ({
           const unpassedCountInCat = totalCoursesInCat - completedCountInCat - reexamCountInCat;
 
           return (
-            <div key={category.id} className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+            <div 
+              key={category.id} 
+              className={`bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 ${dragOverCategoryId === category.id ? 'ring-4 ring-blue-500/20 border-blue-500 scale-[1.01] bg-blue-50/10' : ''}`}
+              onDragOver={(e) => handleDragOver(e, category.id)}
+              onDrop={() => handleDrop(category.id)}
+              onDragLeave={handleDragLeave}
+            >
               <div className="bg-gray-50/50 dark:bg-zinc-800/50 px-5 py-4 border-b border-gray-50 dark:border-zinc-800 flex justify-between items-center">
                 <div className="flex flex-col">
                   {isDegreeEditMode ? (
@@ -222,7 +270,14 @@ export const DegreePlanTab = ({
                     <h3 className="font-bold text-gray-900 dark:text-zinc-100">{category.name}</h3>
                   )}
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">เหลืออีก {unpassedCountInCat} วิชา</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      เหลืออีก {
+                        category.courses.filter(code => 
+                          !completedCourses.some(c => c.course_code === code && !c.is_reexam) && 
+                          !semesterRoadmap.some(sem => sem.courses.some((c: Course) => c.code === code))
+                        ).length
+                      } วิชาที่ต้องจัดแผน
+                    </span>
                     {reexamCountInCat > 0 && <span className="text-[10px] font-bold text-orange-500 uppercase">| สอบซ่อม {reexamCountInCat} วิชา</span>}
                   </div>
                 </div>
@@ -251,17 +306,25 @@ export const DegreePlanTab = ({
                   const completedData = completedCourses.find(c => c.course_code === courseCode);
                   const isCompleted = !!completedData && !completedData.is_reexam;
                   const isReExam = !!completedData && completedData.is_reexam;
+                  const isPlanned = semesterRoadmap.some(sem => sem.courses.some((c: Course) => c.code === courseCode));
                   const courseData = mr30Courses.find(c => c.code === courseCode);
                   const gradeOptions = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F'];
 
                   return (
-                    <div key={courseCode} className="relative group">
+                    <div 
+                      key={courseCode} 
+                      className={`relative group ${isDegreeEditMode ? 'cursor-move' : ''}`}
+                      draggable={isDegreeEditMode}
+                      onDragStart={() => handleDragStart(courseCode, category.id)}
+                    >
                       <div className={`w-full p-3 md:p-4 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all ${isCompleted
                         ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm'
                         : isReExam 
                           ? 'bg-orange-50/50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-900/30 text-orange-700 dark:text-orange-400 shadow-sm'
-                          : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
-                        } ${isDegreeEditMode ? 'opacity-50 cursor-default' : ''}`}
+                          : isPlanned
+                            ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
+                            : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
+                        } ${isDegreeEditMode ? 'opacity-50' : ''}`}
                       >
                         <div className="flex flex-col items-center gap-1 w-full">
                            <button
@@ -269,13 +332,20 @@ export const DegreePlanTab = ({
                             onClick={() => toggleCourseCompletion(courseCode)}
                             className="flex flex-col items-center gap-1 w-full active:scale-95 transition-transform"
                           >
-                            <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
+                            <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isPlanned ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
                               {isCompleted && <CheckCircle size={12} />}
+                              {isPlanned && !isCompleted && <Calendar size={12} />}
                             </div>
-                            <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-emerald-800 dark:text-emerald-300' : isReExam ? 'text-orange-800 dark:text-orange-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
+                            <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-emerald-800 dark:text-emerald-300' : isReExam ? 'text-orange-800 dark:text-orange-300' : isPlanned ? 'text-blue-800 dark:text-blue-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
                           </button>
 
-                          {!isDegreeEditMode && (
+                          {!isDegreeEditMode && !isCompleted && isPlanned && (
+                            <div className="mt-1.5 px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase tracking-widest">
+                               Planned
+                            </div>
+                          )}
+
+                          {!isDegreeEditMode && !isPlanned && (
                             <button 
                               onClick={() => toggleReExam(courseCode)}
                               className={`mt-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${isReExam ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600'}`}

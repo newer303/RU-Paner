@@ -82,7 +82,7 @@ export default function App() {
     searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
     totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
-    semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, removeSemester,
+    semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, renameSemester, removeSemester,
     handleAddCategory, closeAddCategoryModal, confirmAddCategory, handleDeleteCategory,
     handleAddCourse, confirmAddCourseToCategory, degreeSearchResults, handleDeleteCourse,
     showToast
@@ -118,14 +118,7 @@ export default function App() {
   const subscribeToPush = async () => {
     try {
       const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!publicKey) {
-        throw new Error('VAPID Public Key is missing. Please check your environment variables.');
-      }
-
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('Permission not granted for notifications.');
-      }
+      if (!publicKey) throw new Error('VAPID public key missing');
 
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
@@ -133,14 +126,14 @@ export default function App() {
         applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
 
-      const response = await fetch('/api/web-push', {
+      const res = await fetch('/api/web-push', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription })
+        body: JSON.stringify(subscription),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to save subscription on server');
       }
 
@@ -148,7 +141,7 @@ export default function App() {
       alert('ลงทะเบียนรับแจ้งเตือนผ่าน Browser สำเร็จ!');
     } catch (err: any) {
       console.error('Failed to subscribe:', err);
-      alert(`เกิดข้อผิดพลาด: ${err.message || 'ไม่ทราบสาเหตุ'}`);
+      alert(`ไม่สามารถเปิดแจ้งเตือนได้: ${err.message}`);
     }
   };
 
@@ -184,137 +177,175 @@ export default function App() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#020617]">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center gap-6">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="w-20 h-20 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <BookMarked size={20} className="text-blue-600 animate-pulse" />
+            <Sparkles className="text-blue-600" size={24} />
           </div>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <h2 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">RU Planner</h2>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Initializing System...</p>
         </div>
       </div>
     );
   }
 
-  if (!session) return null;
-
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-500">
-      <main className="max-w-7xl mx-auto px-4 py-4 md:py-10 flex flex-col md:flex-row gap-10">
-        {/* Sidebar Navigation */}
-        <aside className="hidden md:block md:w-72 flex-shrink-0 sticky top-10 self-start animate-slide-up">
-          <div className="mb-10 px-4 flex items-center gap-4">
-            <div className="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-blue-500/40 relative group">
-              <div className="absolute inset-0 bg-white/20 rounded-[1.5rem] scale-0 group-hover:scale-100 transition-transform duration-500"></div>
-              <BookMarked size={28} className="text-white relative z-10" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">RU Planner</h1>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version 2.0</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans selection:bg-blue-500/30">
+      {/* Mobile Top Header */}
+      <header className="lg:hidden sticky top-0 z-[60] bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-900 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <Sparkles className="text-white" size={18} />
+          </div>
+          <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">RU Planner</h1>
+        </div>
+        <div className="flex items-center gap-3">
+           <ThemeToggle />
+           <button 
+             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+             className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400"
+           >
+             {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
+           </button>
+        </div>
+      </header>
+
+      {/* Sidebar Overlay (Mobile) */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-[65] bg-slate-950/40 backdrop-blur-md animate-fade-in"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      <main className="flex">
+        {/* Responsive Sidebar - Compact Redesign */}
+        <aside className={`
+          fixed lg:sticky top-0 left-0 h-[100dvh] z-[70] 
+          w-[260px] bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 
+          transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+          ${isMobileMenuOpen ? 'translate-x-0 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)]' : '-translate-x-full lg:translate-x-0'}
+          flex flex-col
+        `}>
+          {/* Sidebar Header with Gradient Background */}
+          <div className="relative p-6 mb-4 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/5 to-indigo-600/5 dark:from-blue-500/10 dark:to-indigo-500/10 -z-10"></div>
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl"></div>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 transform transition-transform hover:rotate-6">
+                <Sparkles className="text-white" size={18} />
+              </div>
+              <div>
+                <h1 className="text-lg font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">RU Planner</h1>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Cloud Sync Active</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <nav className="flex flex-col gap-3">
-            <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="หน้าหลัก" />
-            <NavButton active={activeTab === 'calendar'} onClick={() => setActiveTab('calendar')} icon={<Calendar size={20} />} label="ปฏิทินราม" />
-            <NavButton active={activeTab === 'roadmap'} onClick={() => setActiveTab('roadmap')} icon={<Layers size={20} />} label="Roadmap" />
-            <NavButton active={activeTab === 'courses'} onClick={() => setActiveTab('courses')} icon={<BookMarked size={20} />} label="ค้นหาวิชา" />
-            <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="จัดตารางเรียน" />
-            <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="แผนการเรียน" />
-            <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="ตั้งค่า" />
+          {/* Navigation Links - Compact Visuals */}
+          <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar">
+            <div className="px-3 mb-3">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">Main Console</span>
+            </div>
+            <NavButton 
+              active={activeTab === 'home'} 
+              onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }} 
+              icon={<LayoutDashboard size={18} />} 
+              label="Dashboard" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
+            <NavButton 
+              active={activeTab === 'roadmap'} 
+              onClick={() => { setActiveTab('roadmap'); setIsMobileMenuOpen(false); }} 
+              icon={<Layers size={18} />} 
+              label="Academic Roadmap" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
+            <NavButton 
+              active={activeTab === 'courses'} 
+              onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }} 
+              icon={<BookOpen size={18} />} 
+              label="Subject Explorer" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
+            <NavButton 
+              active={activeTab === 'planner'} 
+              onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }} 
+              icon={<CalendarDays size={18} />} 
+              label="Schedule Master" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
+            <NavButton 
+              active={activeTab === 'degree'} 
+              onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }} 
+              icon={<List size={18} />} 
+              label="Degree Tracker" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
+            
+            <div className="px-3 mt-6 mb-3">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">System & Sync</span>
+            </div>
+            <NavButton 
+              active={activeTab === 'calendar'} 
+              onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }} 
+              icon={<Calendar size={18} />} 
+              label="RU Exam Calendar" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
+            <NavButton 
+              active={activeTab === 'notify'} 
+              onClick={() => { setActiveTab('notify'); setIsMobileMenuOpen(false); }} 
+              icon={<Bell size={18} />} 
+              label="Notification Settings" 
+              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+            />
           </nav>
 
-          <div className="mt-10 p-8 rounded-[2.5rem] bg-white dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 shadow-sm relative overflow-hidden group">
-            <div className="absolute -right-6 -bottom-6 opacity-5 group-hover:scale-125 transition-transform duration-700">
-              <Sparkles size={80} />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-4">
-                <UserIcon size={14} className="text-blue-500" />
-                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Active Session</span>
-              </div>
-              <p className="text-sm font-black text-slate-900 dark:text-white truncate mb-4">{session.user?.name || session.user?.email}</p>
+          {/* Sidebar Footer - Compact Profile Card */}
+          <div className="p-4 mt-2">
+            <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/50 p-4 rounded-3xl space-y-4">
+              {session?.user && (
+                <div className="flex items-center gap-3">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-blue-500 rounded-xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-md relative z-10">
+                      {session.user.name?.[0] || 'U'}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-slate-900 dark:text-white truncate uppercase tracking-tight">{session.user.name}</p>
+                    <p className="text-[9px] font-bold text-slate-400 truncate tracking-wide">{session.user.email}</p>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
-                className="w-full py-3 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 transition-all text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                className="group w-full py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/10 border border-slate-100 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-900/30 text-slate-600 dark:text-slate-400 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
               >
-                <LogOut size={14} /> Log Out
+                <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" /> 
+                <span className="font-black text-[9px] uppercase tracking-[0.2em]">Logout Session</span>
               </button>
             </div>
+            
+            <p className="text-center mt-4 text-[8px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.3em]">Version 2.0.4</p>
           </div>
         </aside>
 
-        {/* Mobile Header */}
-        <header className="flex justify-between items-center mb-6 md:hidden animate-slide-up">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30">
-              <BookMarked size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black uppercase tracking-tighter">RU Planner</h1>
-              <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Version 2.0</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800"
-            >
-              {isMobileMenuOpen ? <CloseIcon size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </header>
-
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-50 bg-[#f8fafc]/95 dark:bg-[#020617]/95 backdrop-blur-xl animate-fade-in p-6 flex flex-col">
-            <div className="flex justify-between items-center mb-10">
-              <div className="flex items-center gap-3">
-                <BookMarked className="text-blue-600" size={32} />
-                <h2 className="text-2xl font-black tracking-tighter">MENU</h2>
-              </div>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full">
-                <CloseIcon size={24} />
-              </button>
-            </div>
-            <nav className="flex flex-col gap-4 overflow-y-auto">
-              <NavButton active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }} icon={<LayoutDashboard size={24} />} label="หน้าหลัก" />
-              <NavButton active={activeTab === 'calendar'} onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }} icon={<Calendar size={24} />} label="ปฏิทินราม" />
-              <NavButton active={activeTab === 'roadmap'} onClick={() => { setActiveTab('roadmap'); setIsMobileMenuOpen(false); }} icon={<Layers size={24} />} label="Roadmap" />
-              <NavButton active={activeTab === 'courses'} onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }} icon={<BookMarked size={24} />} label="ค้นหาวิชา" />
-              <NavButton active={activeTab === 'planner'} onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }} icon={<CalendarDays size={24} />} label="จัดตารางเรียน" />
-              <NavButton active={activeTab === 'degree'} onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }} icon={<List size={24} />} label="แผนการเรียน" />
-              <NavButton active={activeTab === 'notify'} onClick={() => { setActiveTab('notify'); setIsMobileMenuOpen(false); }} icon={<Bell size={24} />} label="การตั้งค่า" />
-            </nav>
-            <div className="mt-auto py-10 flex flex-col gap-4">
-              <div className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
-                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
-                  <UserIcon size={20} className="text-slate-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-900 dark:text-white truncate">{session.user?.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{session.user?.email}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="w-full py-5 rounded-3xl bg-red-600 text-white font-black uppercase tracking-widest shadow-xl shadow-red-500/30 flex items-center justify-center gap-3"
-              >
-                <LogOut size={20} /> SIGN OUT
-              </button>
-            </div>
-          </div>
-        )}
-
-        <section className="flex-1 min-w-0">
-          <div className="hidden md:flex justify-end mb-10 animate-fade-in">
+        {/* Content Area */}
+        <section className="flex-1 min-w-0 p-5 lg:p-12">
+          <div className="hidden lg:flex justify-end mb-8 animate-fade-in">
             <ThemeToggle />
           </div>
 
-          <div className="relative">
+          <div className="max-w-6xl mx-auto pb-10">
             {activeTab === 'home' && (
               <DashboardTab
                 degreePlan={degreePlan}
@@ -349,6 +380,7 @@ export default function App() {
                 onAddCourse={addCourseToSemester}
                 onRemoveCourse={removeCourseFromSemester}
                 onMoveCourse={moveCourseToSemester}
+                onRenameSemester={renameSemester}
                 onRemoveSemester={removeSemester}
               />
             )}
@@ -406,6 +438,7 @@ export default function App() {
                 isDegreeLoading={isDegreeLoading}
                 completedCourses={completedCourses}
                 mr30Courses={mr30Courses}
+                semesterRoadmap={semesterRoadmap}
               />
             )}
 
@@ -478,17 +511,6 @@ export default function App() {
           </div>
         </section>
       </main>
-
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 z-50">
-        <div className="glass shadow-2xl shadow-slate-900/20 rounded-[2.5rem] border-white/20 px-2 py-3 flex justify-around items-center">
-          <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<LayoutDashboard size={20} />} label="HOME" />
-          <NavButton active={activeTab === 'roadmap'} onClick={() => setActiveTab('roadmap')} icon={<Layers size={20} />} label="ROAD" />
-          <NavButton active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} icon={<CalendarDays size={20} />} label="PLAN" />
-          <NavButton active={activeTab === 'degree'} onClick={() => setActiveTab('degree')} icon={<List size={20} />} label="DEGREE" />
-          <NavButton active={activeTab === 'notify'} onClick={() => setActiveTab('notify')} icon={<Bell size={20} />} label="SET" />
-        </div>
-      </nav>
 
       {/* Toast Notification */}
       {toastMessage && (

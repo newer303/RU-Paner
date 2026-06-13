@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       id: String(id),
       name,
       required: required || 0
-    });
+    }, { onConflict: 'user_id, id' });
     
     if (error) throw error;
     
