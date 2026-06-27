@@ -59,7 +59,7 @@ export default function LoginPage() {
             RU Planner
           </h2>
           <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
-            เข้าสู่ระบบเพื่อจัดการตารางเรียนของคุณ
+            เข้าสู่ระบบเพื่อจัดการตารางเรียน
           </p>
         </div>
 
