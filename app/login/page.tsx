@@ -113,16 +113,13 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <input
+              {/* <input
                 id="remember"
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <label htmlFor="remember" className="text-sm font-medium text-gray-600 dark:text-zinc-400 cursor-pointer">
-                จดจำฉันไว้ในระบบ
-              </label>
+              /> */}
             </div>
             <Link href="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
               ลืมรหัสผ่าน?
