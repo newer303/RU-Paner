@@ -78,10 +78,29 @@ export function useAppData() {
   }, []);
 
   // --- Data Fetching ---
-  const loadAllData = useCallback(async () => {
-    setIsDegreeLoading(true);
+  const fetchDegreePlan = useCallback(async () => {
+    try {
+      const res = await fetch('/api/degree-plan', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch degree plan');
+      const degreeData = await res.json();
+      const plan = {
+        major: degreeData.major || 'ยังไม่ได้ระบุชื่อหลักสูตร',
+        totalCredits: degreeData.totalCredits || 0,
+        categories: Array.isArray(degreeData.categories) ? degreeData.categories : [],
+        completedCourses: Array.isArray(degreeData.completedCourses) ? degreeData.completedCourses : []
+      };
+      setDegreePlan(plan);
+      setCompletedCourses(plan.completedCourses);
+      return plan;
+    } catch (err) {
+      console.error('Error fetching degree plan:', err);
+      throw err;
+    }
+  }, []);
+
+  const loadAllData = useCallback(async (isInitialLoad = false) => {
+    if (isInitialLoad) setIsDegreeLoading(true);
     
-    // 1. Try to load courses from cache first for instant UI response
     try {
       const cachedCourses = localStorage.getItem('mr30Courses');
       if (cachedCourses) {
@@ -92,7 +111,6 @@ export function useAppData() {
     }
 
     try {
-      // 2. Fetch all data
       const [calRes, coursesRes, plannerRes, settingsRes, degreeRes, roadmapRes] = await Promise.all([
         fetch('/api/calendar', { cache: 'no-store' }),
         fetch('/api/courses', { cache: 'no-store' }),
@@ -103,14 +121,7 @@ export function useAppData() {
       ]);
 
       if (!calRes.ok || !coursesRes.ok || !plannerRes.ok || !settingsRes.ok || !degreeRes.ok || !roadmapRes.ok) {
-        const failed = [];
-        if (!calRes.ok) failed.push('/api/calendar');
-        if (!coursesRes.ok) failed.push('/api/courses');
-        if (!plannerRes.ok) failed.push('/api/planner');
-        if (!settingsRes.ok) failed.push('/api/settings');
-        if (!degreeRes.ok) failed.push('/api/degree-plan');
-        if (!roadmapRes.ok) failed.push('/api/roadmap');
-        throw new Error(`Data fetch failed for: ${failed.join(', ')}`);
+        throw new Error('One or more data fetches failed');
       }
 
       const [calData, coursesData, plannerData, settingsData, degreeData, roadmapData] = await Promise.all([
@@ -127,7 +138,6 @@ export function useAppData() {
       setSelectedCourses(plannerData);
       setSemesterRoadmap(roadmapData);
 
-      // Cache courses for next time
       try {
         localStorage.setItem('mr30Courses', JSON.stringify(coursesData));
       } catch (e) {
@@ -155,7 +165,7 @@ export function useAppData() {
   }, [showToast]);
 
   useEffect(() => {
-    loadAllData();
+    loadAllData(true);
   }, [loadAllData]);
 
   const updateSetting = async (key: string, value: string | boolean) => {
@@ -424,7 +434,6 @@ export function useAppData() {
     }
   };
 
-  // --- Degree Plan Logic ---
   const totalCompletedCredits = useMemo(() => {
     return completedCourses.reduce((sum, completed) => {
       if (!completed.course_code || completed.course_code === 'TEST') return sum;
@@ -437,6 +446,16 @@ export function useAppData() {
     if (isDegreeEditMode) return;
     const existing = completedCourses.find(c => c.course_code === courseCode);
     const isCompleted = !!existing && !existing.is_reexam;
+    const newCompletedStatus = !isCompleted;
+
+    // Optimistic Update
+    setCompletedCourses(prev => {
+      if (isCompleted) {
+        return prev.filter(c => c.course_code !== courseCode);
+      } else {
+        return [...prev, { course_code: courseCode, is_reexam: false, grade: 'A' }];
+      }
+    });
 
     try {
       const res = await fetch('/api/degree-plan/completed', {
@@ -444,15 +463,16 @@ export function useAppData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           courseCode, 
-          completed: !isCompleted,
+          completed: newCompletedStatus,
           is_reexam: false,
-          grade: !isCompleted ? 'A' : null 
+          grade: newCompletedStatus ? 'A' : null 
         }),
       });
       if (!res.ok) throw new Error('Failed to update course completion');
-      await loadAllData();
+      await fetchDegreePlan();
     } catch (error) {
       console.error(error);
+      await fetchDegreePlan(); // Rollback
       showToast('ไม่สามารถบันทึกสถานะวิชาได้');
     }
   };
@@ -461,6 +481,16 @@ export function useAppData() {
     if (isDegreeEditMode) return;
     const existing = completedCourses.find(c => c.course_code === courseCode);
     const isReExam = !!existing && existing.is_reexam;
+    const newReExamStatus = !isReExam;
+
+    // Optimistic Update
+    setCompletedCourses(prev => {
+      const filtered = prev.filter(c => c.course_code !== courseCode);
+      if (newReExamStatus) {
+        return [...filtered, { course_code: courseCode, is_reexam: true, grade: 'F' }];
+      }
+      return filtered;
+    });
 
     try {
       const res = await fetch('/api/degree-plan/completed', {
@@ -469,19 +499,25 @@ export function useAppData() {
         body: JSON.stringify({ 
           courseCode, 
           completed: false,
-          is_reexam: !isReExam,
-          grade: !isReExam ? 'F' : null 
+          is_reexam: newReExamStatus,
+          grade: newReExamStatus ? 'F' : null 
         }),
       });
       if (!res.ok) throw new Error('Failed to update re-exam status');
-      await loadAllData();
+      await fetchDegreePlan();
     } catch (error) {
       console.error(error);
+      await fetchDegreePlan(); // Rollback
       showToast('ไม่สามารถบันทึกสถานะสอบซ่อมได้');
     }
   };
 
   const updateCourseGrade = async (courseCode: string, grade: string) => {
+    // Optimistic Update
+    setCompletedCourses(prev => 
+      prev.map(c => c.course_code === courseCode ? { ...c, grade } : c)
+    );
+
     try {
       const res = await fetch('/api/degree-plan/completed', {
         method: 'POST',
@@ -489,9 +525,10 @@ export function useAppData() {
         body: JSON.stringify({ courseCode, completed: true, grade }),
       });
       if (!res.ok) throw new Error('Failed to update grade');
-      await loadAllData();
+      await fetchDegreePlan();
     } catch (error) {
       console.error(error);
+      await fetchDegreePlan(); // Rollback
       showToast('ไม่สามารถบันทึกเกรดได้');
     }
   };
@@ -510,7 +547,7 @@ export function useAppData() {
         throw new Error(errorData.details || errorData.error || 'Failed to update degree settings');
       }
 
-      await loadAllData();
+      await fetchDegreePlan();
       showToast('บันทึกข้อมูลหลักสูตรเรียบร้อยแล้ว');
       setIsDegreeEditMode(false);
     } catch (error: any) {
@@ -539,7 +576,7 @@ export function useAppData() {
         body: JSON.stringify({ id, name, required: 0 }),
       });
       if (!res.ok) throw new Error('Failed to add category');
-      await loadAllData();
+      await fetchDegreePlan();
       closeAddCategoryModal();
     } catch (error) {
       console.error(error);
@@ -557,12 +594,12 @@ export function useAppData() {
         throw new Error(errorData.details || errorData.error || 'Failed to delete category');
       }
 
-      await loadAllData();
+      await fetchDegreePlan();
       showToast('ลบหมวดหมู่เรียบร้อยแล้ว');
     } catch (error: any) {
       console.error('[handleDeleteCategory] Error:', error);
       showToast(`ไม่สามารถลบหมวดวิชาได้: ${error.message}`);
-      await loadAllData();
+      await fetchDegreePlan();
     }
   };
 
@@ -587,7 +624,7 @@ export function useAppData() {
           body: JSON.stringify({ categoryId: targetCategoryId, courseCode }),
         });
         if (!res.ok) throw new Error('Failed to add course to category');
-        await loadAllData();
+        await fetchDegreePlan();
         setIsAddCourseModalOpen(false);
         showToast(`เพิ่มวิชา  ${courseCode} เรียบร้อยแล้ว`);
       } catch (error) {
@@ -609,7 +646,7 @@ export function useAppData() {
     try {
       const res = await fetch(`/api/degree-plan/courses?categoryId=${catId}&courseCode=${courseCode}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete course');
-      await loadAllData();
+      await fetchDegreePlan();
     } catch (error) {
       console.error(error);
       showToast('ไม่สามารถลบวิชาได้');
