@@ -7,7 +7,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Calendar, BookMarked, Bell, LayoutDashboard, List, CalendarDays,
   Smartphone, AlertCircle, CheckCircle, Loader2, LogOut, User as UserIcon,
-  Sparkles, Menu, X as CloseIcon, BookOpen, Layers
+  Sparkles, Menu, X as CloseIcon, BookOpen, Layers, Lock
 } from 'lucide-react';
 import { CalendarTab } from '@/components/CalendarTab';
 import { PlannerTab } from '@/components/PlannerTab';
@@ -203,19 +203,19 @@ export default function App() {
           <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">RU Planner</h1>
         </div>
         <div className="flex items-center gap-3">
-           <ThemeToggle />
-           <button 
-             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-             className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400"
-           >
-             {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
-           </button>
+          <ThemeToggle />
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400"
+          >
+            {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </header>
 
       {/* Sidebar Overlay (Mobile) */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 z-[65] bg-slate-950/40 backdrop-blur-md animate-fade-in"
           onClick={() => setIsMobileMenuOpen(false)}
         ></div>
@@ -234,7 +234,7 @@ export default function App() {
           <div className="relative p-6 mb-4 overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/5 to-indigo-600/5 dark:from-blue-500/10 dark:to-indigo-500/10 -z-10"></div>
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl"></div>
-            
+
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 transform transition-transform hover:rotate-6">
                 <Sparkles className="text-white" size={18} />
@@ -254,57 +254,57 @@ export default function App() {
             <div className="px-3 mb-3">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">Main Console</span>
             </div>
-            <NavButton 
-              active={activeTab === 'home'} 
-              onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }} 
-              icon={<LayoutDashboard size={18} />} 
-              label="Dashboard" 
+            <NavButton
+              active={activeTab === 'home'}
+              onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }}
+              icon={<LayoutDashboard size={18} />}
+              label="Dashboard"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
-            <NavButton 
-              active={activeTab === 'roadmap'} 
-              onClick={() => { setActiveTab('roadmap'); setIsMobileMenuOpen(false); }} 
-              icon={<Layers size={18} />} 
-              label="Academic Roadmap" 
+            <NavButton
+              active={activeTab === 'roadmap'}
+              onClick={() => { setActiveTab('roadmap'); setIsMobileMenuOpen(false); }}
+              icon={<Layers size={18} />}
+              label="Academic Roadmap"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
-            <NavButton 
-              active={activeTab === 'courses'} 
-              onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }} 
-              icon={<BookOpen size={18} />} 
-              label="Subject Explorer" 
+            <NavButton
+              active={activeTab === 'courses'}
+              onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }}
+              icon={<BookOpen size={18} />}
+              label="Subject Explorer"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
-            <NavButton 
-              active={activeTab === 'planner'} 
-              onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }} 
-              icon={<CalendarDays size={18} />} 
-              label="Schedule Master" 
+            <NavButton
+              active={activeTab === 'planner'}
+              onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }}
+              icon={<CalendarDays size={18} />}
+              label="Schedule Master"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
-            <NavButton 
-              active={activeTab === 'degree'} 
-              onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }} 
-              icon={<List size={18} />} 
-              label="Degree Tracker" 
+            <NavButton
+              active={activeTab === 'degree'}
+              onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }}
+              icon={<List size={18} />}
+              label="Degree Tracker"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
-            
+
             <div className="px-3 mt-6 mb-3">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">System & Sync</span>
             </div>
-            <NavButton 
-              active={activeTab === 'calendar'} 
-              onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }} 
-              icon={<Calendar size={18} />} 
-              label="RU Exam Calendar" 
+            <NavButton
+              active={activeTab === 'calendar'}
+              onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
+              icon={<Calendar size={18} />}
+              label="RU Exam Calendar"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
-            <NavButton 
-              active={activeTab === 'notify'} 
-              onClick={() => { setActiveTab('notify'); setIsMobileMenuOpen(false); }} 
-              icon={<Bell size={18} />} 
-              label="Notification Settings" 
+            <NavButton
+              active={activeTab === 'notify'}
+              onClick={() => { setActiveTab('notify'); setIsMobileMenuOpen(false); }}
+              icon={<Bell size={18} />}
+              label="Notification Settings"
               className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
             />
           </nav>
@@ -326,191 +326,200 @@ export default function App() {
                   </div>
                 </div>
               )}
-              <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="group w-full py-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/10 border border-slate-100 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-900/30 text-slate-600 dark:text-slate-400 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
-              >
-                <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" /> 
-                <span className="font-black text-[9px] uppercase tracking-[0.2em]">Logout</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => router.push('/settings/security')}
+                  className="py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-400 transition-all duration-300 flex items-center justify-center gap-1 shadow-sm text-[8px] font-black uppercase tracking-widest"
+                >
+                  <Lock size={10} />
+                  Password
+                </button>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/10 border border-slate-100 dark:border-slate-700 hover:border-red-200 dark:hover:border-red-900/30 text-slate-600 dark:text-slate-400 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-1 shadow-sm text-[8px] font-black uppercase tracking-widest"
+                >
+                  <LogOut size={10} />
+                  Logout
+                </button>
+              </div>
             </div>
-            
-            <p className="text-center mt-4 text-[8px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.3em]">Version 2.0.4</p>
           </div>
+
+          <p className="text-center mt-4 text-[8px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-[0.3em]">Version 2.0.4</p>
         </aside>
 
-        {/* Content Area */}
-        <section className="flex-1 min-w-0 p-5 lg:p-12">
-          <div className="hidden lg:flex justify-end mb-8 animate-fade-in">
-            <ThemeToggle />
-          </div>
+      {/* Content Area */}
+      <section className="flex-1 min-w-0 p-5 lg:p-12">
+        <div className="hidden lg:flex justify-end mb-8 animate-fade-in">
+          <ThemeToggle />
+        </div>
 
-          <div className="max-w-6xl mx-auto pb-10">
-            {activeTab === 'home' && (
-              <DashboardTab
-                degreePlan={degreePlan}
-                selectedCourses={selectedCourses}
-                calendarEvents={calendarEvents}
-                totalCompletedCredits={totalCompletedCredits}
-                gpax={gpax}
-                onNavigate={setActiveTab}
-                userName={session?.user?.name || ''}
-                deferredPrompt={deferredPrompt}
-                onInstall={handleInstallApp}
-              />
-            )}
+        <div className="max-w-6xl mx-auto pb-10">
+          {activeTab === 'home' && (
+            <DashboardTab
+              degreePlan={degreePlan}
+              selectedCourses={selectedCourses}
+              calendarEvents={calendarEvents}
+              totalCompletedCredits={totalCompletedCredits}
+              gpax={gpax}
+              onNavigate={setActiveTab}
+              userName={session?.user?.name || ''}
+              deferredPrompt={deferredPrompt}
+              onInstall={handleInstallApp}
+            />
+          )}
 
-            {activeTab === 'calendar' && (
-              <CalendarTab
-                filterRegion={filterRegion}
-                setFilterRegion={setFilterRegion}
-                filterType={filterType}
-                setFilterType={setFilterType}
-                filteredCalendar={filteredCalendar}
-                handleOpenEventModal={handleOpenEventModal}
-                setConfirmDeleteId={setConfirmDeleteId}
-                getCalendarIcon={getCalendarIcon}
-              />
-            )}
+          {activeTab === 'calendar' && (
+            <CalendarTab
+              filterRegion={filterRegion}
+              setFilterRegion={setFilterRegion}
+              filterType={filterType}
+              setFilterType={setFilterType}
+              filteredCalendar={filteredCalendar}
+              handleOpenEventModal={handleOpenEventModal}
+              setConfirmDeleteId={setConfirmDeleteId}
+              getCalendarIcon={getCalendarIcon}
+            />
+          )}
 
-            {activeTab === 'roadmap' && (
-              <RoadmapTab
-                roadmap={semesterRoadmap}
-                mr30Courses={mr30Courses}
-                onAddCourse={addCourseToSemester}
-                onRemoveCourse={removeCourseFromSemester}
-                onMoveCourse={moveCourseToSemester}
-                onRenameSemester={renameSemester}
-                onRemoveSemester={removeSemester}
-              />
-            )}
+          {activeTab === 'roadmap' && (
+            <RoadmapTab
+              roadmap={semesterRoadmap}
+              mr30Courses={mr30Courses}
+              onAddCourse={addCourseToSemester}
+              onRemoveCourse={removeCourseFromSemester}
+              onMoveCourse={moveCourseToSemester}
+              onRenameSemester={renameSemester}
+              onRemoveSemester={removeSemester}
+            />
+          )}
 
-            {activeTab === 'courses' && (
-              isDegreeLoading ? (
-                <div className="flex h-[60vh] items-center justify-center">
-                  <div className="relative">
-                    <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <BookOpen size={20} className="text-blue-600" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <CoursesTab
-                  courses={mr30Courses}
-                  onCourseAdded={loadAllData}
-                  showToast={showToast}
-                  addCourseToPlanner={addCourseToPlanner}
-                  selectedCourses={selectedCourses}
-                />
-              )
-            )}
-
-            {activeTab === 'planner' && (
-              <PlannerTab
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                searchResults={searchResults}
-                addCourseToPlanner={addCourseToPlanner}
-                plannerError={plannerError}
-                selectedCourses={selectedCourses}
-                removeCourseFromPlanner={removeCourseFromPlanner}
-                openManualCourseModal={() => setIsManualCourseModalOpen(true)}
-                calendarEvents={calendarEvents}
-                showToast={showToast}
-              />
-            )}
-
-            {activeTab === 'degree' && (
-              <DegreePlanTab
-                degreePlan={degreePlan}
-                isDegreeEditMode={isDegreeEditMode}
-                setIsDegreeEditMode={setIsDegreeEditMode}
-                handleSaveDegreeSettings={handleSaveDegreeSettings}
-                totalCompletedCredits={totalCompletedCredits}
-                toggleCourseCompletion={toggleCourseCompletion}
-                toggleReExam={toggleReExam}
-                updateCourseGrade={updateCourseGrade}
-                handleAddCategory={handleAddCategory}
-                handleDeleteCategory={handleDeleteCategory}
-                handleAddCourse={handleAddCourse}
-                handleDeleteCourse={handleDeleteCourse}
-                isDegreeLoading={isDegreeLoading}
-                completedCourses={completedCourses}
-                mr30Courses={mr30Courses}
-                semesterRoadmap={semesterRoadmap}
-              />
-            )}
-
-            {activeTab === 'notify' && (
-              <div className="animate-slide-up space-y-8 max-w-2xl">
-                <div className="flex flex-col gap-2 mb-4">
-                  <h2 className="text-3xl font-black tracking-tighter uppercase">การตั้งค่าแจ้งเตือน</h2>
-                  <p className="text-slate-500 font-medium">จัดการวิธีที่คุณต้องการรับข้อมูลจากเรา</p>
-                </div>
-
-                <div className="grid gap-6">
-                  <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-5">
-                        <div className="bg-[#00B900] p-4 rounded-2xl shadow-lg shadow-green-500/20">
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-6 h-6 invert brightness-0" alt="LINE" />
-                        </div>
-                        <div>
-                          <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">LINE Notify</h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">แจ้งเตือนผ่านแอป LINE</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => updateSetting('notifyLine', !notifyLine)}
-                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ${notifyLine ? 'bg-[#00B900]' : 'bg-slate-200 dark:bg-slate-800'}`}
-                      >
-                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition-transform duration-500 ${notifyLine ? 'translate-x-7' : 'translate-x-1'}`} />
-                      </button>
-                    </div>
-                    {notifyLine && (
-                      <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 animate-slide-up">
-                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">LINE Notify Token</label>
-                        <input
-                          type="password"
-                          value={lineToken}
-                          onChange={(e) => updateSetting('lineToken', e.target.value)}
-                          placeholder="วาง Token ของคุณที่นี่..."
-                          className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all text-slate-900 dark:text-white font-bold"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-5">
-                        <div className="bg-blue-600 p-4 rounded-2xl shadow-lg shadow-blue-500/20">
-                          <Smartphone className="text-white" size={24} />
-                        </div>
-                        <div>
-                          <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">Browser Notify</h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">แจ้งเตือนบนเบราว์เซอร์</p>
-                        </div>
-                      </div>
-                      {!isPushSupported ? (
-                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Not Supported</span>
-                      ) : (
-                        <button
-                          onClick={isSubscribed ? testPush : subscribeToPush}
-                          className={`text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full transition-all ${isSubscribed ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' : 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'}`}
-                        >
-                          {isSubscribed ? 'Test Alert' : 'Enable'}
-                        </button>
-                      )}
-                    </div>
+          {activeTab === 'courses' && (
+            isDegreeLoading ? (
+              <div className="flex h-[60vh] items-center justify-center">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <BookOpen size={20} className="text-blue-600" />
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        </section>
-      </main>
+            ) : (
+              <CoursesTab
+                courses={mr30Courses}
+                onCourseAdded={loadAllData}
+                showToast={showToast}
+                addCourseToPlanner={addCourseToPlanner}
+                selectedCourses={selectedCourses}
+              />
+            )
+          )}
+
+          {activeTab === 'planner' && (
+            <PlannerTab
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              searchResults={searchResults}
+              addCourseToPlanner={addCourseToPlanner}
+              plannerError={plannerError}
+              selectedCourses={selectedCourses}
+              removeCourseFromPlanner={removeCourseFromPlanner}
+              openManualCourseModal={() => setIsManualCourseModalOpen(true)}
+              calendarEvents={calendarEvents}
+              showToast={showToast}
+            />
+          )}
+
+          {activeTab === 'degree' && (
+            <DegreePlanTab
+              degreePlan={degreePlan}
+              isDegreeEditMode={isDegreeEditMode}
+              setIsDegreeEditMode={setIsDegreeEditMode}
+              handleSaveDegreeSettings={handleSaveDegreeSettings}
+              totalCompletedCredits={totalCompletedCredits}
+              toggleCourseCompletion={toggleCourseCompletion}
+              toggleReExam={toggleReExam}
+              updateCourseGrade={updateCourseGrade}
+              handleAddCategory={handleAddCategory}
+              handleDeleteCategory={handleDeleteCategory}
+              handleAddCourse={handleAddCourse}
+              handleDeleteCourse={handleDeleteCourse}
+              isDegreeLoading={isDegreeLoading}
+              completedCourses={completedCourses}
+              mr30Courses={mr30Courses}
+              semesterRoadmap={semesterRoadmap}
+            />
+          )}
+
+          {activeTab === 'notify' && (
+            <div className="animate-slide-up space-y-8 max-w-2xl">
+              <div className="flex flex-col gap-2 mb-4">
+                <h2 className="text-3xl font-black tracking-tighter uppercase">การตั้งค่าแจ้งเตือน</h2>
+                <p className="text-slate-500 font-medium">จัดการวิธีที่คุณต้องการรับข้อมูลจากเรา</p>
+              </div>
+
+              <div className="grid gap-6">
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-5">
+                      <div className="bg-[#00B900] p-4 rounded-2xl shadow-lg shadow-green-500/20">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-6 h-6 invert brightness-0" alt="LINE" />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">LINE Notify</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">แจ้งเตือนผ่านแอป LINE</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => updateSetting('notifyLine', !notifyLine)}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ${notifyLine ? 'bg-[#00B900]' : 'bg-slate-200 dark:bg-slate-800'}`}
+                    >
+                      <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-xl transition-transform duration-500 ${notifyLine ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  {notifyLine && (
+                    <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 animate-slide-up">
+                      <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">LINE Notify Token</label>
+                      <input
+                        type="password"
+                        value={lineToken}
+                        onChange={(e) => updateSetting('lineToken', e.target.value)}
+                        placeholder="วาง Token ของคุณที่นี่..."
+                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl px-6 py-4 text-sm outline-none focus:ring-4 focus:ring-green-500/10 focus:border-green-500 transition-all text-slate-900 dark:text-white font-bold"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-5">
+                      <div className="bg-blue-600 p-4 rounded-2xl shadow-lg shadow-blue-500/20">
+                        <Smartphone className="text-white" size={24} />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">Browser Notify</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">แจ้งเตือนบนเบราว์เซอร์</p>
+                      </div>
+                    </div>
+                    {!isPushSupported ? (
+                      <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Not Supported</span>
+                    ) : (
+                      <button
+                        onClick={isSubscribed ? testPush : subscribeToPush}
+                        className={`text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full transition-all ${isSubscribed ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30' : 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'}`}
+                      >
+                        {isSubscribed ? 'Test Alert' : 'Enable'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </main>
 
       {/* Toast Notification */}
       {toastMessage && (

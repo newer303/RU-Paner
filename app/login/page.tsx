@@ -111,7 +111,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <input
                 id="remember"
@@ -124,7 +124,9 @@ export default function LoginPage() {
                 จดจำฉันไว้ในระบบ
               </label>
             </div>
-            {/* You can add "Forgot Password?" link here later if needed */}
+            <Link href="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              ลืมรหัสผ่าน?
+            </Link>
           </div>
 
           <button
