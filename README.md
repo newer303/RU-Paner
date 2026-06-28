@@ -76,4 +76,4 @@ npm run dev
 4. กด Deploy
 
 ---
-*Built for RU Students.*
+*Built for RU Students.*# RU-Paner
