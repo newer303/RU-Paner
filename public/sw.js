@@ -1,6 +1,5 @@
 const CACHE_NAME = 'ru-planner-cache-v1';
 const ASSETS_TO_CACHE = [
-  '/',
   '/manifest.json',
   '/favicon.ico',
   '/globe.svg'

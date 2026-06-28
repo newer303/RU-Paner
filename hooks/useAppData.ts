@@ -78,9 +78,28 @@ export function useAppData() {
   }, []);
 
   // --- Data Fetching ---
+  const fetchWithTimeout = async (url: string, options = {}, timeout = 5000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(id);
+      return response;
+    } catch (error: any) {
+      clearTimeout(id);
+      if (error.name === 'AbortError') {
+        throw new Error(`Request timeout after ${timeout}ms: ${url}`);
+      }
+      throw error;
+    }
+  };
+
   const fetchDegreePlan = useCallback(async () => {
     try {
-      const res = await fetch('/api/degree-plan', { cache: 'no-store' });
+      const res = await fetchWithTimeout('/api/degree-plan', { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch degree plan');
       const degreeData = await res.json();
       const plan = {
@@ -100,6 +119,7 @@ export function useAppData() {
 
   const loadAllData = useCallback(async (isInitialLoad = false) => {
     if (isInitialLoad) setIsDegreeLoading(true);
+    console.log('[useAppData] Starting loadAllData...');
     
     try {
       const cachedCourses = localStorage.getItem('mr30Courses');
@@ -111,56 +131,65 @@ export function useAppData() {
     }
 
     try {
-      const [calRes, coursesRes, plannerRes, settingsRes, degreeRes, roadmapRes] = await Promise.all([
-        fetch('/api/calendar', { cache: 'no-store' }),
-        fetch('/api/courses', { cache: 'no-store' }),
-        fetch('/api/planner', { cache: 'no-store' }),
-        fetch('/api/settings', { cache: 'no-store' }),
-        fetch('/api/degree-plan', { cache: 'no-store' }),
-        fetch('/api/roadmap', { cache: 'no-store' })
-      ]);
+      const endpoints = [
+        { key: 'calendar', url: '/api/calendar' },
+        { key: 'courses', url: '/api/courses' },
+        { key: 'planner', url: '/api/planner' },
+        { key: 'settings', url: '/api/settings' },
+        { key: 'degree', url: '/api/degree-plan' },
+        { key: 'roadmap', url: '/api/roadmap' },
+      ];
 
-      if (!calRes.ok || !coursesRes.ok || !plannerRes.ok || !settingsRes.ok || !degreeRes.ok || !roadmapRes.ok) {
-        throw new Error('One or more data fetches failed');
+      const results: any = {};
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`[useAppData] Fetching ${endpoint.key}...`);
+          const res = await fetchWithTimeout(endpoint.url, { cache: 'no-store' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          results[endpoint.key] = await res.json();
+          console.log(`[useAppData] Successfully fetched ${endpoint.key}`);
+        } catch (e: any) {
+          console.error(`[useAppData] Failed to fetch ${endpoint.key}: ${e.message}`);
+          results[endpoint.key] = null; 
+        }
       }
 
-      const [calData, coursesData, plannerData, settingsData, degreeData, roadmapData] = await Promise.all([
-        calRes.json(),
-        coursesRes.json(),
-        plannerRes.json(),
-        settingsRes.json(),
-        degreeRes.json(),
-        roadmapRes.json()
-      ]);
+      const { calendar, courses, planner, settings, degree, roadmap } = results;
 
-      setCalendarEvents(calData);
-      setMr30Courses(coursesData);
-      setSelectedCourses(plannerData);
-      setSemesterRoadmap(roadmapData);
+      if (calendar) setCalendarEvents(calendar);
+      if (courses) {
+        setMr30Courses(courses);
+        try {
+          localStorage.setItem('mr30Courses', JSON.stringify(courses));
+        } catch (e) {
+          console.error('Failed to cache courses', e);
+        }
+      }
+      if (planner) setSelectedCourses(planner);
+      if (roadmap) setSemesterRoadmap(roadmap);
 
-      try {
-        localStorage.setItem('mr30Courses', JSON.stringify(coursesData));
-      } catch (e) {
-        console.error('Failed to cache courses', e);
+      if (settings) {
+        if (settings.notifyLine !== undefined) setNotifyLine(settings.notifyLine === 'true');
+        if (settings.notifyEmail !== undefined) setNotifyEmail(settings.notifyEmail === 'true');
+        if (settings.lineToken !== undefined) setLineToken(settings.lineToken);
       }
 
-      if (settingsData.notifyLine !== undefined) setNotifyLine(settingsData.notifyLine === 'true');
-      if (settingsData.notifyEmail !== undefined) setNotifyEmail(settingsData.notifyEmail === 'true');
-      if (settingsData.lineToken !== undefined) setLineToken(settingsData.lineToken);
-
-      const plan = {
-        major: degreeData.major || 'ยังไม่ได้ระบุชื่อหลักสูตร',
-        totalCredits: degreeData.totalCredits || 0,
-        categories: Array.isArray(degreeData.categories) ? degreeData.categories : [],
-        completedCourses: Array.isArray(degreeData.completedCourses) ? degreeData.completedCourses : []
-      };
-      setDegreePlan(plan);
-      setCompletedCourses(plan.completedCourses);
+      if (degree) {
+        const plan = {
+          major: degree.major || 'ยังไม่ได้ระบุชื่อหลักสูตร',
+          totalCredits: degree.totalCredits || 0,
+          categories: Array.isArray(degree.categories) ? degree.categories : [],
+          completedCourses: Array.isArray(degree.completedCourses) ? degree.completedCourses : []
+        };
+        setDegreePlan(plan);
+        setCompletedCourses(plan.completedCourses);
+      }
     } catch (err) {
-      console.error('Error loading all data:', err);
+      console.error('Critical error in loadAllData:', err);
       showToast('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsDegreeLoading(false);
+      console.log('[useAppData] loadAllData completed');
     }
   }, [showToast]);
 
@@ -363,7 +392,12 @@ export function useAppData() {
     );
 
     if (examConflict) {
-      const confirmAdd = window.confirm(`⚠️ วันสอบซ้ำซ้อน!\n\nวิชา ${course.code} สอบวันเดียวกับ ${examConflict.code}\n(${course.examDate} ${course.examTime})\n\nคุณยังต้องการเพิ่มวิชานี้ลงในแผนการเรียนหรือไม่?`);
+      const confirmAdd = window.confirm(`⚠️ วันสอบซ้ำซ้อน!
+
+วิชา ${course.code} สอบวันเดียวกับ ${examConflict.code}
+(${course.examDate} ${course.examTime})
+
+คุณยังต้องการเพิ่มวิชานี้ลงในแผนการเรียนหรือไม่?`);
       if (!confirmAdd) return;
     }
 
