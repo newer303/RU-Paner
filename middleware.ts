@@ -1,14 +1,12 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req });
   const { pathname } = req.nextUrl;
 
-  // Define public routes that do not require authentication
+  // 1. Define public routes
   const isPublicRoute = 
-    pathname.startsWith('/login') || 
+    pathname === '/login' || 
     pathname.startsWith('/register') || 
     pathname.startsWith('/forgot-password') || 
     pathname.startsWith('/reset-password') ||
@@ -18,9 +16,31 @@ export async function middleware(req: NextRequest) {
     pathname === '/manifest.json' ||
     pathname === '/sw.js';
 
-  // If the user is not authenticated and trying to access a protected route, redirect to /login
-  if (!token && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', req.url));
+  try {
+    // For public routes, we only need the token if we want to redirect authenticated users away from login/register
+    if (isPublicRoute) {
+      // Only check token for login/register pages to redirect to dashboard
+      if (pathname === '/login' || pathname.startsWith('/register')) {
+        const token = await getToken({ req });
+        if (token) {
+          return NextResponse.redirect(new URL('/', req.url));
+        }
+      }
+      return NextResponse.next();
+    }
+
+    // 2. For protected routes, verify authentication
+    const token = await getToken({ req });
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+
+  } catch (error) {
+    console.error(`[Middleware] Critical Error:`, error);
+    // Fallback: if an error occurs on a protected route, redirect to login
+    if (!isPublicRoute) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
   }
 
   return NextResponse.next();
