@@ -1,48 +1,40 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
 export async function middleware(req: NextRequest) {
+  const token = await getToken({ req });
   const { pathname } = req.nextUrl;
-  console.log(`[Auth] Request: ${pathname}`);
 
-  // 1. Define public routes
-  const isPublicRoute = 
-    pathname === '/login' || 
-    pathname.startsWith('/register') || 
-    pathname.startsWith('/forgot-password') || 
-    pathname.startsWith('/reset-password') ||
-    pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/_next') ||
-    pathname === '/favicon.ico' ||
-    pathname === '/manifest.json' ||
-    pathname === '/sw.js';
-
-  try {
-    if (isPublicRoute) {
-      if (pathname === '/login' || pathname.startsWith('/register')) {
-        const token = await getToken({ req });
-        if (token) {
-          console.log(`[Auth] Authenticated user accessing public route, redirecting to /`);
-          return NextResponse.redirect(new URL('/', req.url));
-        }
-      }
-      return NextResponse.next();
-    }
-
-    const token = await getToken({ req });
-    if (!token) {
-      console.log(`[Auth] Unauthenticated user accessing protected route, redirecting to /login`);
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-    console.log(`[Auth] Authenticated user accessing protected route`);
-
-  } catch (error) {
-    console.error(`[Auth] Critical Error:`, error);
-    if (!isPublicRoute) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
+  // 1. Immediate pass for assets and auth API
+  if (
+    pathname.startsWith('/_next') || 
+    pathname.includes('/api/auth') ||
+    pathname === '/favicon.ico' || 
+    pathname === '/manifest.json' || 
+    pathname === '/sw.js'
+  ) {
+    return NextResponse.next();
   }
 
+  // 2. Priority: If it's a public route, allow it immediately
+  // This is the critical part to break the loop
+  if (
+    pathname.startsWith('/login') || 
+    pathname.startsWith('/register') || 
+    pathname.startsWith('/forgot-password') || 
+    pathname.startsWith('/reset-password')
+  ) {
+    return NextResponse.next();
+  }
+
+  // 3. Authentication Check
+  // If no token is found, redirect all other requests (including root '/') to /login
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  // 4. Authenticated users can access everything else
   return NextResponse.next();
 }
 
@@ -56,9 +48,6 @@ export const config = {
      * - favicon.ico
      * - manifest.json
      * - sw.js
-     * 
-     * We keep it broad here and handle specific public routes (login, register, etc.) 
-     * inside the middleware function for better reliability.
      */
     "/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.json|sw.js).*)",
   ],
