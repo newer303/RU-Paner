@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
-          rememberMe: credentials.rememberMe === 'true'
+          rememberMe: credentials.rememberMe === "true"
         };
       }
     })
@@ -76,9 +76,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.rememberMe = user.rememberMe;
       }
-      // Shorten token lifespan if not remembered
       if (token.rememberMe === false) {
-         token.exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 1 day
+         token.exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
       }
       return token;
     },
@@ -91,7 +90,17 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      },
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

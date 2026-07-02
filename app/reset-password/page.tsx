@@ -38,7 +38,7 @@ function ResetPasswordForm() {
         setStatus('success');
         setMessage('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบได้ทันที');
         setTimeout(() => {
-          router.push('/login');
+          router.push('/');
         }, 3000);
       } else {
         setStatus('error');

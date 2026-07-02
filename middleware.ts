@@ -20,18 +20,22 @@ export async function middleware(req: NextRequest) {
   // 2. Priority: If it's a public route, allow it immediately
   // This is the critical part to break the loop
   if (
-    pathname.startsWith('/login') || 
+    pathname === '/' || 
     pathname.startsWith('/register') || 
     pathname.startsWith('/forgot-password') || 
     pathname.startsWith('/reset-password')
   ) {
+    // If authenticated and trying to access login/public pages, redirect to dashboard
+    if (token && pathname === '/') {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
     return NextResponse.next();
   }
 
   // 3. Authentication Check
-  // If no token is found, redirect all other requests (including root '/') to /login
+  // If no token is found, redirect all other requests to the root '/' (Login page)
   if (!token) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('/', req.url));
   }
 
   // 4. Authenticated users can access everything else
