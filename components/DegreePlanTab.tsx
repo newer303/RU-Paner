@@ -22,6 +22,7 @@ interface DegreePlanTabProps {
   handleSaveDegreeSettings: (major: string, totalCredits: number, categories: DegreeCategory[]) => void;
   isDegreeLoading?: boolean;
   semesterRoadmap?: SemesterPlan[];
+  selectedCourses?: Course[];
 }
 
 export const DegreePlanTab = ({
@@ -42,7 +43,8 @@ export const DegreePlanTab = ({
   mr30Courses = [],
   handleSaveDegreeSettings,
   isDegreeLoading,
-  semesterRoadmap = []
+  semesterRoadmap = [],
+  selectedCourses = []
 }: DegreePlanTabProps) => {
   const [editedMajor, setEditedMajor] = useState(degreePlan.major);
   const [editedTotalCredits, setEditedTotalCredits] = useState(degreePlan.totalCredits);
@@ -140,13 +142,24 @@ export const DegreePlanTab = ({
   };
 
   const totalCoursesCount = degreePlan.categories.reduce((sum, cat) => sum + cat.courses.length, 0);
+  
+  const registeredCodes = new Set(selectedCourses.map(c => c.code));
+
   const totalCompletedCount = degreePlan.categories.reduce((sum, cat) => {
     return sum + cat.courses.filter(code => completedCourses.some(c => c.course_code === code && !c.is_reexam)).length;
   }, 0);
+
   const totalReExamCount = degreePlan.categories.reduce((sum, cat) => {
-    return sum + cat.courses.filter(code => completedCourses.some(c => c.course_code === code && c.is_reexam)).length;
+    return sum + cat.courses.filter(code => 
+      completedCourses.some(c => c.course_code === code && c.is_reexam) && !registeredCodes.has(code)
+    ).length;
   }, 0);
-  const totalUnpassedCount = totalCoursesCount - totalCompletedCount - totalReExamCount;
+
+  const totalUnpassedCount = degreePlan.categories.reduce((sum, cat) => {
+    return sum + cat.courses.filter(code => 
+      !completedCourses.some(c => c.course_code === code) && !registeredCodes.has(code)
+    ).length;
+  }, 0);
 
   return (
     <div className="animate-fade-in">
@@ -178,57 +191,79 @@ export const DegreePlanTab = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 dark:bg-blue-500"></div>
-          <div className="flex justify-between items-end mb-4">
-            <div>
-              <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ความคืบหน้าโดยรวม</span>
-              {isDegreeEditMode ? (
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}</span>
-                  <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">/ </span>
-                  <input
-                    type="number"
-                    value={editedTotalCredits}
-                    onChange={(e) => setEditedTotalCredits(parseInt(e.target.value) || 0)}
-                    className="w-16 text-sm font-bold text-blue-600 dark:text-blue-400 border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600 bg-transparent"
-                  />
-                  <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">นก.</span>
-                </div>
-              ) : (
-                <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}<span className="text-sm font-bold text-gray-400 dark:text-zinc-500 ml-1">/ {degreePlan.totalCredits} นก.</span></span>
-              )}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 dark:bg-blue-500"></div>
+            <div className="flex justify-between items-end mb-4">
+              <div>
+                <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ความคืบหน้าโดยรวม</span>
+                {isDegreeEditMode ? (
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}</span>
+                    <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">/ </span>
+                    <input
+                      type="number"
+                      value={editedTotalCredits}
+                      onChange={(e) => setEditedTotalCredits(parseInt(e.target.value) || 0)}
+                      className="w-16 text-sm font-bold text-blue-600 dark:text-blue-400 border-b border-blue-300 dark:border-blue-800 focus:outline-none focus:border-blue-600 bg-transparent"
+                    />
+                    <span className="text-sm font-bold text-gray-400 dark:text-zinc-500">นก.</span>
+                  </div>
+                ) : (
+                  <span className="text-3xl font-black text-gray-900 dark:text-zinc-100">{totalCompletedCredits}<span className="text-sm font-bold text-gray-400 dark:text-zinc-500 ml-1">/ {degreePlan.totalCredits} นก.</span></span>
+                )}
+              </div>
+              <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
+                {degreePlan.totalCredits > 0 ? Math.round((totalCompletedCredits / degreePlan.totalCredits) * 100) : 0}%
+              </span>
             </div>
-            <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
-              {degreePlan.totalCredits > 0 ? Math.round((totalCompletedCredits / degreePlan.totalCredits) * 100) : 0}%
-            </span>
+            <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-3">
+              <div
+                className="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(37,99,235,0.3)]"
+                style={{ width: `${degreePlan.totalCredits > 0 ? (totalCompletedCredits / degreePlan.totalCredits) * 100 : 0}%` }}
+              ></div>
+            </div>
           </div>
-          <div className="w-full bg-gray-100 dark:bg-zinc-800 rounded-full h-3">
-            <div
-              className="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(37,99,235,0.3)]"
-              style={{ width: `${degreePlan.totalCredits > 0 ? (totalCompletedCredits / degreePlan.totalCredits) * 100 : 0}%` }}
-            ></div>
+
+          <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all hover:scale-105">
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">ผ่านแล้ว</span>
+              <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{totalCompletedCount}</span>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/30 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all hover:scale-105">
+              <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-1">รอสอบแก้</span>
+              <span className="text-2xl font-black text-orange-700 dark:text-orange-300">{totalReExamCount}</span>
+            </div>
+            <div className="bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all hover:scale-105">
+              <span className="text-[10px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-widest mb-1">ยังไม่ผ่าน</span>
+              <span className="text-2xl font-black text-slate-600 dark:text-zinc-300">{totalUnpassedCount}</span>
+            </div>
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all hover:scale-105">
+              <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">ลงทะเบียน</span>
+              <span className="text-2xl font-black text-indigo-700 dark:text-indigo-300">{selectedCourses.length}</span>
+            </div>
           </div>
         </div>
 
-        <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 flex justify-around items-center text-center">
-          <div>
-            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ผ่านแล้ว</span>
-            <span className="block text-2xl font-black text-emerald-600 dark:text-emerald-500">{totalCompletedCount}</span>
+        {selectedCourses.length > 0 && !isDegreeEditMode && (
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 shadow-sm mb-8 animate-slide-up">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                <Calendar size={16} />
+              </div>
+              <h3 className="font-black text-gray-900 dark:text-zinc-100 uppercase tracking-tighter text-sm">รายวิชาที่กำลังลงทะเบียนในเทอมนี้</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {selectedCourses.map(course => (
+                <div key={course.code} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-xl flex items-center gap-2 transition-all hover:bg-indigo-100 dark:hover:bg-indigo-900/50">
+                  <span className="font-black text-indigo-700 dark:text-indigo-300 text-xs">{course.code}</span>
+                  <span className="w-1 h-1 rounded-full bg-indigo-300 dark:bg-indigo-700"></span>
+                  <span className="text-[10px] font-medium text-indigo-500 dark:text-indigo-400 truncate max-w-[150px]">{course.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="w-[1px] h-10 bg-gray-100 dark:bg-zinc-800"></div>
-          <div>
-            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">รอสอบแก้</span>
-            <span className="block text-2xl font-black text-orange-600 dark:text-orange-500">{totalReExamCount}</span>
-          </div>
-          <div className="w-[1px] h-10 bg-gray-100 dark:bg-zinc-800"></div>
-          <div>
-            <span className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest mb-1">ยังไม่ผ่าน</span>
-            <span className="block text-2xl font-black text-slate-400 dark:text-slate-500">{totalUnpassedCount}</span>
-          </div>
-        </div>
-      </div>
+        )}
 
       <div className="space-y-8">
         {(isDegreeEditMode ? editedCategories : degreePlan.categories).length === 0 && !isDegreeLoading ? (
@@ -311,6 +346,7 @@ export const DegreePlanTab = ({
                   const isCompleted = !!completedData && !completedData.is_reexam;
                   const isReExam = !!completedData && completedData.is_reexam;
                   const isPlanned = semesterRoadmap.some(sem => sem.courses.some((c: Course) => c.code === courseCode));
+                  const isRegistered = selectedCourses.some(c => c.code === courseCode);
                   const courseData = mr30Courses.find(c => c.code === courseCode);
                   const gradeOptions = ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'F'];
 
@@ -325,9 +361,11 @@ export const DegreePlanTab = ({
                         ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 shadow-sm'
                         : isReExam 
                           ? 'bg-orange-50/50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-900/30 text-orange-700 dark:text-orange-400 shadow-sm'
-                          : isPlanned
-                            ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
-                            : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
+                          : isRegistered
+                            ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                            : isPlanned
+                              ? 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
+                              : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-400 dark:text-zinc-600 hover:border-blue-200 dark:hover:border-blue-900/50 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'
                         } ${isDegreeEditMode ? 'opacity-50' : ''}`}
                       >
                         <div className="flex flex-col items-center gap-1 w-full">
@@ -336,20 +374,27 @@ export const DegreePlanTab = ({
                             onClick={() => toggleCourseCompletion(courseCode)}
                             className="flex flex-col items-center gap-1 w-full active:scale-95 transition-transform"
                           >
-                            <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isPlanned ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
+                            <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-all ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isRegistered ? 'bg-indigo-500 border-indigo-500 text-white' : isPlanned ? 'bg-blue-500 border-blue-500 text-white' : 'border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800'}`}>
                               {isCompleted && <CheckCircle size={12} />}
-                              {isPlanned && !isCompleted && <Calendar size={12} />}
+                              {isRegistered && !isCompleted && <Calendar size={12} />}
+                              {isPlanned && !isCompleted && !isRegistered && <Calendar size={12} />}
                             </div>
-                            <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-emerald-800 dark:text-emerald-300' : isReExam ? 'text-orange-800 dark:text-orange-300' : isPlanned ? 'text-blue-800 dark:text-blue-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
+                            <span className={`font-black text-[12px] md:text-[13px] tracking-tight ${isCompleted ? 'text-emerald-800 dark:text-emerald-300' : isReExam ? 'text-orange-800 dark:text-orange-300' : isRegistered ? 'text-indigo-800 dark:text-indigo-300' : isPlanned ? 'text-blue-800 dark:text-blue-300' : 'text-gray-700 dark:text-zinc-400'}`}>{courseCode}</span>
                           </button>
 
-                          {!isDegreeEditMode && !isCompleted && isPlanned && (
+                          {!isDegreeEditMode && !isCompleted && isRegistered && (
+                            <div className="mt-1.5 px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[8px] font-black uppercase tracking-widest">
+                               Registered
+                            </div>
+                          )}
+
+                          {!isDegreeEditMode && !isCompleted && !isRegistered && isPlanned && (
                             <div className="mt-1.5 px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase tracking-widest">
                                Planned
                             </div>
                           )}
 
-                          {!isDegreeEditMode && !isPlanned && (
+                          {!isDegreeEditMode && !isCompleted && !isRegistered && !isPlanned && (
                             <button 
                               onClick={() => toggleReExam(courseCode)}
                               className={`mt-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest transition-all ${isReExam ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600'}`}

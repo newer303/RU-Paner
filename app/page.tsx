@@ -458,6 +458,7 @@ export default function App() {
                 completedCourses={completedCourses}
                 mr30Courses={mr30Courses}
                 semesterRoadmap={semesterRoadmap}
+                selectedCourses={selectedCourses}
               />
             )}
 
