@@ -59,7 +59,7 @@ export const DashboardTab = ({
   }, [calendarEvents]);
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="max-w-7xl mx-auto space-y-8 pb-10">
       {/* PWA Install Banner - Floating Style */}
       {deferredPrompt && (
         <div className="glass p-5 rounded-[2rem] border-blue-500/30 shadow-2xl shadow-blue-500/10 animate-slide-up flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden group">
@@ -103,15 +103,15 @@ export const DashboardTab = ({
               </h1>
             </div>
 
-            <div className="flex flex-wrap gap-4 mt-10">
-              <div className="glass-light bg-white/10 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 flex-1 min-w-[140px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
+              <div className="glass-light bg-white/10 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 flex-1">
                 <span className="block text-[10px] uppercase font-black tracking-widest text-blue-200/60 mb-1">GPAX โดยประมาณ</span>
                 <div className="flex items-end gap-2">
                   <span className="text-3xl font-black tracking-tighter">{gpax}</span>
                   <TrendingUp size={18} className="text-emerald-400 mb-1" />
                 </div>
               </div>
-              <div className="glass-light bg-white/10 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 flex-1 min-w-[140px]">
+              <div className="glass-light bg-white/10 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 flex-1">
                 <span className="block text-[10px] uppercase font-black tracking-widest text-blue-200/60 mb-1">หน่วยกิตสะสม</span>
                 <div className="flex items-end gap-2">
                   <span className="text-3xl font-black tracking-tighter">{totalCompletedCredits}</span>
@@ -124,7 +124,7 @@ export const DashboardTab = ({
 
         {/* Progress Circle Card */}
         <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col items-center justify-center text-center group bento-card">
-          <div className="relative w-44 h-44 mb-6">
+          <div className="relative w-40 h-40 md:w-44 md:h-44 mb-6">
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="88" cy="88" r="76" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-50 dark:text-slate-800" />
               <circle cx="88" cy="88" r="76" stroke="currentColor" strokeWidth="12" fill="transparent" 
@@ -147,9 +147,9 @@ export const DashboardTab = ({
 
       {/* Main Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Side: Exams & Events */}
+        {/* Left Side: Exams & Quick Actions */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Upcoming Exams Bento - Modern Redesign */}
+          {/* Upcoming Exams Bento */}
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden animate-slide-up stagger-2 bento-card">
             <div className="p-8 pb-6 flex justify-between items-center relative z-10">
               <div className="flex items-center gap-4">
@@ -183,13 +183,11 @@ export const DashboardTab = ({
 
                   return (
                     <div key={course.code} className="group/item flex items-center gap-6 p-5 bg-slate-50 dark:bg-slate-800/40 rounded-[2rem] border border-transparent hover:border-red-500/20 hover:bg-white dark:hover:bg-slate-800 transition-all duration-500">
-                      {/* Calendar Badge */}
                       <div className="flex-shrink-0 w-16 h-20 bg-white dark:bg-slate-700 rounded-[1.25rem] shadow-sm border border-slate-100 dark:border-slate-600 flex flex-col overflow-hidden text-center group-hover/item:scale-105 transition-transform duration-500">
                         <div className="bg-red-600 py-1 text-[9px] font-black text-white uppercase tracking-wider">{month}</div>
                         <div className="flex-1 flex items-center justify-center text-2xl font-black text-slate-900 dark:text-white">{day}</div>
                       </div>
 
-                      {/* Course Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-[9px] font-black text-blue-600 dark:text-blue-400 rounded-lg uppercase tracking-wider">{course.code}</span>
@@ -206,7 +204,6 @@ export const DashboardTab = ({
                         </div>
                       </div>
 
-                      {/* Countdown */}
                       <div className="hidden sm:flex flex-col items-end">
                         <span className={`text-[10px] font-black uppercase tracking-widest ${diffDays <= 3 ? 'text-red-500' : 'text-slate-400'}`}>
                           {diffDays === 0 ? 'Today' : diffDays < 0 ? 'Passed' : `In ${diffDays} days`}
@@ -234,7 +231,7 @@ export const DashboardTab = ({
           </div>
 
           {/* Quick Actions Bento */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up stagger-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-slide-up stagger-3">
             <button 
               onClick={() => onNavigate('planner')} 
               className="group bg-gradient-to-br from-emerald-500 to-teal-600 p-1 rounded-[2.5rem] shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
