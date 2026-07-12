@@ -419,16 +419,44 @@ export function useAppData() {
       setPlannerError('เพิ่มวิชาไม่สำเร็จ');
     }
   };
+const removeCourseFromPlanner = async (code: string) => {
+  try {
+    const res = await fetch(`/api/planner?courseCode=${code}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Remove failed');
+    await loadAllData();
+  } catch (err) {
+    showToast('ลบวิชาไม่สำเร็จ');
+  }
+};
 
-  const removeCourseFromPlanner = async (code: string) => {
-    try {
-      const res = await fetch(`/api/planner?courseCode=${code}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Remove failed');
-      await loadAllData();
-    } catch (err) {
-      showToast('ลบวิชาไม่สำเร็จ');
+const syncRoadmapToPlanner = async (semesterId: string) => {
+  const semester = semesterRoadmap.find(s => s.semester_id === semesterId);
+  if (!semester) {
+    showToast('ไม่พบข้อมูลแผนการเรียนในเทอมนี้');
+    return;
+  }
+
+  try {
+    showToast(`กำลังซิงค์วิชาจากเทอม ${semesterId}...`);
+    for (const course of semester.courses) {
+      // Only add if not already in planner
+      if (!selectedCourses.some(c => c.code === course.code)) {
+        await fetch('/api/planner', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ courseCode: course.code }),
+        });
+      }
     }
-  };
+    await loadAllData();
+    showToast(`ซิงค์วิชาจากเทอม ${semesterId} เรียบร้อยแล้ว`);
+  } catch (err) {
+    console.error(err);
+    showToast('เกิดข้อผิดพลาดในการซิงค์ข้อมูล');
+  }
+};
+
+// --- Calendar Logic ---
 
   const handleSaveManualCourse = async () => {
     if (!manualCourseData.code || !manualCourseData.name) {

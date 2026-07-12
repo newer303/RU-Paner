@@ -16,6 +16,8 @@ interface PlannerTabProps {
   openManualCourseModal: () => void;
   calendarEvents: CalendarEvent[];
   showToast?: (msg: string) => void;
+  syncRoadmapToPlanner: (semesterId: string) => void;
+  semesterRoadmap: SemesterPlan[];
 }
 
 const DAYS_TH = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
@@ -49,11 +51,32 @@ export const PlannerTab = ({
   removeCourseFromPlanner,
   openManualCourseModal,
   calendarEvents,
-  showToast
+  showToast,
+  syncRoadmapToPlanner,
+  semesterRoadmap
 }: PlannerTabProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const plannerRef = useRef<HTMLDivElement>(null);
+
+  const sortedSelectedCourses = useMemo(() => {
+    const dayPriority: Record<string, number> = {
+      'จันทร์': 0, 'MON': 0, 'M': 0,
+      'อังคาร': 1, 'TUE': 1, 'TU': 1,
+      'พุธ': 2, 'WED': 2, 'W': 2,
+      'พฤหัสบดี': 3, 'THU': 3, 'TH': 3,
+      'ศุกร์': 4, 'FRI': 4, 'F': 4,
+      'เสาร์': 5, 'SAT': 5, 'SA': 5,
+      'อาทิตย์': 6, 'SUN': 6, 'SU': 6,
+    };
+
+    return [...selectedCourses].sort((a, b) => {
+      const dayA = dayPriority[a.day.toUpperCase()] ?? 99;
+      const dayB = dayPriority[b.day.toUpperCase()] ?? 99;
+      if (dayA !== dayB) return dayA - dayB;
+      return a.time.localeCompare(b.time);
+    });
+  }, [selectedCourses]);
 
   const handleExportImage = async () => {
     if (!plannerRef.current) return;
@@ -163,6 +186,15 @@ export const PlannerTab = ({
               <List size={14} /> List
             </button>
           </div>
+          <button
+            onClick={() => {
+              const semId = prompt('ระบุเทอมที่ต้องการซิงค์ (เช่น 1/2567)');
+              if (semId) syncRoadmapToPlanner(semId);
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+          >
+            <Download size={16} /> Sync Roadmap
+          </button>
           <button
             onClick={handleExportImage}
             disabled={selectedCourses.length === 0 || isExporting}
@@ -337,7 +369,7 @@ export const PlannerTab = ({
             </div>
 
             <ul className="divide-y divide-gray-50 dark:divide-zinc-800">
-              {selectedCourses.map((course, idx) => (
+              {sortedSelectedCourses.map((course, idx) => (
                 <li key={course.code} className="p-8 flex flex-col sm:flex-row gap-6 justify-between hover:bg-gray-50/30 dark:hover:bg-zinc-800/30 transition-all group">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
