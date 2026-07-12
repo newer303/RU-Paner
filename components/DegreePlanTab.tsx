@@ -14,6 +14,8 @@ interface DegreePlanTabProps {
   updateCourseGrade: (code: string, grade: string) => void;
   handleDeleteCategory: (id: string) => void;
   handleAddCourse: (id: string) => void;
+  confirmAddCourseToCategory: (courseCode: string) => void;
+  degreeSearchResults: Course[];
   handleDeleteCourse: (catId: string, code: string) => void;
   handleAddCategory: () => void;
   mr30Courses: Course[];
@@ -33,6 +35,8 @@ export const DegreePlanTab = ({
   updateCourseGrade,
   handleDeleteCategory,
   handleAddCourse,
+  confirmAddCourseToCategory,
+  degreeSearchResults,
   handleDeleteCourse,
   handleAddCategory,
   mr30Courses = [],
