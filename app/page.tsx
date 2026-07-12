@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -14,25 +14,31 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get('error');
+    if (errorParam) {
+      if (errorParam === 'CredentialsSignin') {
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else {
+        setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        redirect: false,
+      await signIn('credentials', {
+        redirect: true,
+        callbackUrl: '/dashboard',
         email,
         password,
         rememberMe: rememberMe.toString()
       });
-
-      if (result?.error) {
-        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      } else {
-        router.push('/dashboard');
-        router.refresh();
-      }
     } catch (err) {
       setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
     } finally {
