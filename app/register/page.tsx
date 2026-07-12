@@ -29,7 +29,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+        throw new Error(data.details ? `${data.error}: ${data.details}` : (data.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก'));
       }
 
       setSuccess(true);
@@ -60,7 +60,7 @@ export default function RegisterPage() {
               สมัครสมาชิกสำเร็จ!
             </h2>
             <p className="text-gray-500 dark:text-zinc-400 font-medium">
-              ยินดีต้อนรับเข้าสู่ครอบครัว RU Planner
+              ยินดีต้อนรับเข้าสู่ครอบครัว Planner
             </p>
           </div>
 
@@ -95,7 +95,7 @@ export default function RegisterPage() {
             สร้างบัญชีใหม่
           </h2>
           <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
-            เริ่มต้นใช้งาน RU Planner เพื่อวางแผนการเรียนของคุณ
+            เริ่มต้นใช้งาน Planner เพื่อวางแผนการเรียนของคุณ
           </p>
         </div>
 

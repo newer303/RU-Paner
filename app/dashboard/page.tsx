@@ -186,6 +186,11 @@ export default function App() {
     );
   }
 
+  if (status === 'unauthenticated') {
+    router.push('/');
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans selection:bg-blue-500/30">
       {/* Mobile Top Header */}

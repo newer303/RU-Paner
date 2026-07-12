@@ -31,18 +31,28 @@ export async function POST(request: Request) {
     const userId = uuidv4();
 
     // Insert user
-    const { error } = await supabase.from('users').insert({
+    const { error: insertError } = await supabase.from('users').insert({
       id: userId,
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      image: null // Provide explicit null to avoid potential NOT NULL constraint errors if the column exists
     });
 
-    if (error) throw error;
+    if (insertError) {
+      console.error('Supabase insert error:', insertError);
+      return NextResponse.json({ 
+        error: 'Database insertion failed', 
+        details: insertError.message 
+      }, { status: 400 });
+    }
 
     return NextResponse.json({ success: true, message: 'User registered successfully' });
   } catch (error: any) {
-    console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Failed to register user', details: error.message }, { status: 500 });
+    console.error('Registration system error:', error);
+    return NextResponse.json({ 
+      error: 'System error during registration', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
