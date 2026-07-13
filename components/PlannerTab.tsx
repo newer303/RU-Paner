@@ -57,6 +57,7 @@ export const PlannerTab = ({
 }: PlannerTabProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedSemesterId, setSelectedSemesterId] = useState('');
   const plannerRef = useRef<HTMLDivElement>(null);
 
   const sortedSelectedCourses = useMemo(() => {
@@ -186,15 +187,28 @@ export const PlannerTab = ({
               <List size={14} /> List
             </button>
           </div>
-          <button
-            onClick={() => {
-              const semId = prompt('ระบุเทอมที่ต้องการซิงค์ (เช่น 1/2567)');
-              if (semId) syncRoadmapToPlanner(semId);
-            }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
-          >
-            <Download size={16} /> Sync Roadmap
-          </button>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedSemesterId}
+              onChange={(e) => setSelectedSemesterId(e.target.value)}
+              className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 px-3 py-2.5 rounded-2xl text-xs font-black uppercase outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+            >
+              <option value="">เลือกเทอม</option>
+              {semesterRoadmap.map(s => (
+                <option key={s.semester_id} value={s.semester_id}>{s.semester_id}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => {
+                if (selectedSemesterId) syncRoadmapToPlanner(selectedSemesterId);
+              }}
+              disabled={!selectedSemesterId}
+              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-2xl text-xs font-black uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+            >
+              <Download size={16} /> Sync
+            </button>
+          </div>
+
           <button
             onClick={handleExportImage}
             disabled={selectedCourses.length === 0 || isExporting}
