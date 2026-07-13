@@ -79,7 +79,7 @@ export default function App() {
     lineToken,
     loadAllData, updateSetting,
     handleOpenEventModal, handleSaveEvent, handleDeleteEvent,
-    searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse,
+    searchResults, addCourseToPlanner, removeCourseFromPlanner, handleSaveManualCourse, syncRoadmapToPlanner,
     totalCompletedCredits, toggleCourseCompletion, toggleReExam, updateCourseGrade, handleSaveDegreeSettings,
     gpax,
     semesterRoadmap, addCourseToSemester, removeCourseFromSemester, moveCourseToSemester, renameSemester, removeSemester,
