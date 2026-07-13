@@ -1,7 +1,7 @@
 'use client';
 import React, { useRef, useState, useMemo } from 'react';
 import { CalendarDays, Search, Plus, AlertCircle, Clock, X, Download, Image as ImageIcon, Loader2, List, Grid3X3, MapPin } from 'lucide-react';
-import { Course, PlannerCourse, CalendarEvent } from '@/types';
+import { Course, PlannerCourse, CalendarEvent, SemesterPlan } from '@/types';
 import { generateICS } from '@/lib/utils';
 import { domToPng } from 'modern-screenshot';
 
