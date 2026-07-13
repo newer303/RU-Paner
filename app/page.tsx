@@ -224,16 +224,14 @@ export default function App() {
         {/* Responsive Sidebar - Compact Redesign */}
         <aside className={`
           fixed lg:sticky top-0 left-0 h-[100dvh] z-[70] 
-          w-full lg:w-[260px] bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 
+          w-full lg:w-[280px] bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 
           transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
           ${isMobileMenuOpen ? 'translate-x-0 shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)]' : '-translate-x-full lg:translate-x-0'}
-          flex flex-col
+          flex flex-col lg:ml-4 lg:mt-4 lg:h-[calc(100dvh-2rem)] lg:rounded-[2.5rem] lg:border lg:border-slate-200/50 dark:lg:border-slate-800/50 lg:bg-white/70 dark:lg:bg-slate-900/70 lg:backdrop-blur-xl lg:shadow-2xl lg:shadow-slate-200/50 dark:lg:shadow-none
         `}>
           {/* Sidebar Header with Gradient Background */}
           <div className="relative p-6 mb-4 overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/5 to-indigo-600/5 dark:from-blue-500/10 dark:to-indigo-500/10 -z-10"></div>
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl"></div>
-
+            
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 transform transition-transform hover:rotate-6">
@@ -257,63 +255,63 @@ export default function App() {
             </div>
           </div>
 
-          {/* Navigation Links - Compact Visuals */}
-          <nav className="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar">
-            <div className="px-3 mb-3">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">เมนูหลัก</span>
+          {/* Navigation Links - Premium Spacing */}
+          <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
+            <div className="px-4 mb-4">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Main Menu</span>
             </div>
             <NavButton
               active={activeTab === 'home'}
               onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }}
-              icon={<LayoutDashboard size={18} />}
+              icon={<LayoutDashboard size={20} />}
               label="หน้าหลัก"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
             <NavButton
               active={activeTab === 'roadmap'}
               onClick={() => { setActiveTab('roadmap'); setIsMobileMenuOpen(false); }}
-              icon={<Layers size={18} />}
+              icon={<Layers size={20} />}
               label="แผนการเรียน"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
             <NavButton
               active={activeTab === 'courses'}
               onClick={() => { setActiveTab('courses'); setIsMobileMenuOpen(false); }}
-              icon={<BookOpen size={18} />}
+              icon={<BookOpen size={20} />}
               label="ค้นหารายวิชา"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
             <NavButton
               active={activeTab === 'planner'}
               onClick={() => { setActiveTab('planner'); setIsMobileMenuOpen(false); }}
-              icon={<CalendarDays size={18} />}
+              icon={<CalendarDays size={20} />}
               label="จัดตารางเรียน"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
             <NavButton
               active={activeTab === 'degree'}
               onClick={() => { setActiveTab('degree'); setIsMobileMenuOpen(false); }}
-              icon={<List size={18} />}
+              icon={<List size={20} />}
               label="ติดตามหลักสูตร"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
 
-            <div className="px-3 mt-6 mb-3">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">ระบบและการซิงค์</span>
+            <div className="px-4 mt-8 mb-4">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">System & Sync</span>
             </div>
             <NavButton
               active={activeTab === 'calendar'}
               onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
-              icon={<Calendar size={18} />}
+              icon={<Calendar size={20} />}
               label="ปฏิทินสอบ ม.รามฯ"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
             <NavButton
               active={activeTab === 'notify'}
               onClick={() => { setActiveTab('notify'); setIsMobileMenuOpen(false); }}
-              icon={<Bell size={18} />}
+              icon={<Bell size={20} />}
               label="ตั้งค่าการแจ้งเตือน"
-              className="w-full justify-start py-3 px-4 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
           </nav>
 
