@@ -15,6 +15,7 @@ import { DegreePlanTab } from '@/components/DegreePlanTab';
 import { CoursesTab } from '@/components/CoursesTab';
 import { DashboardTab } from '@/components/DashboardTab';
 import { RoadmapTab } from '@/components/RoadmapTab';
+import { Course } from '@/types';
 
 // Hooks
 import { useAppData } from '@/hooks/useAppData';
