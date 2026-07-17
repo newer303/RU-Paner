@@ -335,11 +335,11 @@ export default function App() {
               )}
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => router.push('/settings/security')}
+                  onClick={() => router.push('/settings/profile')}
                   className="py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-400 transition-all duration-300 flex items-center justify-center gap-1 shadow-sm text-[8px] font-black uppercase tracking-widest"
                 >
-                  <Lock size={10} />
-                  Password
+                  <UserIcon size={10} />
+                  Edit Profile
                 </button>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}

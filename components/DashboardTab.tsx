@@ -6,6 +6,7 @@ import {
 import { DegreePlan, PlannerCourse, CalendarEvent } from '@/types';
 import { getEventStatus } from '@/lib/utils';
 import { useMemo } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface DashboardTabProps {
   degreePlan: DegreePlan;
@@ -30,6 +31,7 @@ export const DashboardTab = ({
   deferredPrompt,
   onInstall
 }: DashboardTabProps) => {
+  const { data: session } = useSession();
   
   const progressPercent = useMemo(() => {
     if (!degreePlan.totalCredits) return 0;
@@ -93,8 +95,12 @@ export const DashboardTab = ({
           
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-inner">
-                    <span className="text-2xl font-black">{userName?.[0]?.toUpperCase() || 'S'}</span>
+                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-inner overflow-hidden">
+                    {session?.user?.image ? (
+                        <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-2xl font-black">{userName?.[0]?.toUpperCase() || 'S'}</span>
+                    )}
                 </div>
                 <div>
                     <span className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-blue-200">Welcome Back,</span>
