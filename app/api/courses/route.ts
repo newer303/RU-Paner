@@ -1,10 +1,22 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import db from '@/lib/db';
 
 export async function GET() {
+  const fallbackToLocal = async () => {
+    try {
+      const rows = db.prepare('SELECT * FROM courses').all();
+      return NextResponse.json(rows);
+    } catch (localError: any) {
+      console.error('Local DB fallback failed:', localError);
+      return NextResponse.json({ error: 'Failed to fetch courses from both Supabase and local DB', details: localError.message }, { status: 500 });
+    }
+  };
+
   if (!supabase) {
-    return NextResponse.json({ error: 'Database connection not configured' }, { status: 503 });
+    console.warn('Supabase client not configured; falling back to local database for /api/courses GET');
+    return fallbackToLocal();
   }
 
   try {
@@ -19,7 +31,10 @@ export async function GET() {
         .select('*')
         .range(from, from + limit - 1);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase GET /courses failed:', error);
+        return fallbackToLocal();
+      }
       
       if (courses && courses.length > 0) {
         allCourses = [...allCourses, ...courses];
@@ -34,9 +49,9 @@ export async function GET() {
     }
 
     return NextResponse.json(allCourses);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
+  } catch (error: any) {
+    console.error('GET /api/courses unexpected error:', error);
+    return fallbackToLocal();
   }
 }
 
@@ -47,23 +62,40 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { code, name, credit, day, time, room, examDate, examTime } = body;
-    
+    console.log('API POST received payload:', body);
+    const {
+      code,
+      name,
+      credit,
+      lecDay, lecTime, lecRoom,
+      labDay, labTime, labRoom,
+      examDate, examTime,
+      isFacultyExam, examMonthOnly, examMonth
+    } = body;
+
     if (!code || !name) {
       return NextResponse.json({ error: 'Code and Name are required' }, { status: 400 });
     }
 
-    const { error } = await supabase.from('courses').upsert({
+    const payload = {
       code,
       name,
       credit: credit || 3,
-      day: day || '',
-      time: time || '',
-      room: room || '',
+      lecDay: lecDay || '',
+      lecTime: lecTime || '',
+      lecRoom: lecRoom || '',
+      labDay: labDay || '',
+      labTime: labTime || '',
+      labRoom: labRoom || '',
       examDate: examDate || '',
-      examTime: examTime || ''
-    });
+      examTime: examTime || '',
+      isFacultyExam: !!isFacultyExam,
+      examMonthOnly: !!examMonthOnly,
+      examMonth: examMonth || ''
+    };
 
+    const { error } = await supabase.from('courses').upsert(payload, { onConflict: 'code' });
+    
     if (error) {
       console.error('Supabase upsert error:', error);
       return NextResponse.json({ error: 'Failed to save to database', details: error.message }, { status: 500 });

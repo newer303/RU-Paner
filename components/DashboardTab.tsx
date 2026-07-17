@@ -85,63 +85,67 @@ export const DashboardTab = ({
       )}
 
       {/* Hero Section with Bento Grid Header */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-slide-up stagger-1">
-        {/* Main Welcome Card */}
-        <div className="lg:col-span-8 mesh-gradient rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-blue-900/20 group">
-          <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-white/20 transition-all duration-1000"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 animate-slide-up stagger-1">
+        {/* Refined Main Welcome Card */}
+        <div className="md:col-span-2 lg:col-span-8 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-[2rem] lg:rounded-[2.5rem] p-6 md:p-8 lg:p-10 text-white relative overflow-hidden shadow-xl shadow-blue-900/20">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
           
           <div className="relative z-10 flex flex-col h-full justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
-                  <GraduationCap size={24} className="text-white" />
+            <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-inner">
+                    <span className="text-2xl font-black">{userName?.[0]?.toUpperCase() || 'S'}</span>
                 </div>
-                <span className="text-sm font-black uppercase tracking-[0.2em] text-blue-100/80">Student Profile</span>
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black mb-3 tracking-tight">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white/70">{userName || 'Student'}</span>
-              </h1>
+                <div>
+                    <span className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-blue-200">Welcome Back,</span>
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight mt-1">
+                        {userName || 'Student'}
+                    </h1>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
-              <div className="glass-light bg-white/10 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 flex-1">
-                <span className="block text-[10px] uppercase font-black tracking-widest text-blue-200/60 mb-1">GPAX โดยประมาณ</span>
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl font-black tracking-tighter">{gpax}</span>
-                  <TrendingUp size={18} className="text-emerald-400 mb-1" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 lg:p-6">
+                <span className="block text-[10px] uppercase font-black tracking-widest text-blue-200 mb-1">GPAX</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl lg:text-4xl font-black tracking-tighter">{gpax}</span>
+                  <TrendingUp size={20} className="text-emerald-300" />
                 </div>
               </div>
-              <div className="glass-light bg-white/10 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-5 flex-1">
-                <span className="block text-[10px] uppercase font-black tracking-widest text-blue-200/60 mb-1">หน่วยกิตสะสม</span>
-                <div className="flex items-end gap-2">
-                  <span className="text-3xl font-black tracking-tighter">{totalCompletedCredits}</span>
-                  <span className="text-xs font-bold text-blue-200/60 mb-1.5">/ {degreePlan.totalCredits}</span>
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 lg:p-6">
+                <span className="block text-[10px] uppercase font-black tracking-widest text-blue-200 mb-1">Credits</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl lg:text-4xl font-black tracking-tighter">{totalCompletedCredits}</span>
+                  <span className="text-sm font-bold text-blue-200/80">/ {degreePlan.totalCredits}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Progress Circle Card */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col items-center justify-center text-center group bento-card">
-          <div className="relative w-40 h-40 md:w-44 md:h-44 mb-6">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx="88" cy="88" r="76" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-50 dark:text-slate-800" />
-              <circle cx="88" cy="88" r="76" stroke="currentColor" strokeWidth="12" fill="transparent" 
-                strokeDasharray={477.5} 
-                strokeDashoffset={477.5 - (477.5 * progressPercent) / 100}
-                strokeLinecap="round"
-                className="text-blue-600 dark:text-blue-500 transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{progressPercent}%</span>
-              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Completed</span>
+        {/* Course Completion Section */}
+        <div className="md:col-span-2 lg:col-span-4 bg-white dark:bg-slate-900 rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none bento-card">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm lg:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">ความสำเร็จหลักสูตร</h3>
+            <span className="text-xl lg:text-2xl font-black text-blue-600 dark:text-blue-500">{progressPercent}%</span>
+          </div>
+
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 lg:h-4 mb-6 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full rounded-full transition-all duration-1000 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-center text-xs lg:text-sm font-bold text-slate-600 dark:text-slate-400">
+                <span>หน่วยกิตที่เก็บได้:</span>
+                <span className="font-black text-slate-900 dark:text-white">{totalCompletedCredits} / {degreePlan.totalCredits}</span>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-[10px] lg:text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                {degreePlan.major}
             </div>
           </div>
-          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 uppercase tracking-tight">ความสำเร็จหลักสูตร</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold max-w-[200px] leading-relaxed">
-            {degreePlan.major}
-          </p>
         </div>
       </div>
 
@@ -197,10 +201,22 @@ export const DashboardTab = ({
                         </div>
                         <h4 className="font-black text-base text-slate-800 dark:text-white truncate group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors">{course.name}</h4>
                         <div className="flex items-center gap-4 mt-2">
-                           <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                             <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                             {course.room || 'รอระบุห้อง'}
-                           </div>
+                          {(course.lecDay || course.lecRoom) && (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                              <span className="text-blue-500 font-black">LEC:</span> {course.lecRoom || 'TBA'}
+                            </div>
+                          )}
+                          {(course.labDay || course.labRoom) && (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                              <span className="text-amber-500 font-black">LAB:</span> {course.labRoom || 'TBA'}
+                            </div>
+                          )}
+                          {!course.lecDay && !course.labDay && (
+                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                              <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                              {course.room || 'รอระบุห้อง'}
+                            </div>
+                          )}
                         </div>
                       </div>
 

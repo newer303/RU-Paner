@@ -1,0 +1,13 @@
+-- Add LEC/LAB columns to the courses table
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "lecDay" TEXT;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "lecTime" TEXT;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "lecRoom" TEXT;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "labDay" TEXT;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "labTime" TEXT;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "labRoom" TEXT;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "isFacultyExam" BOOLEAN DEFAULT FALSE;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "examMonthOnly" BOOLEAN DEFAULT FALSE;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS "examMonth" TEXT;
+
+-- Notify schema reload
+NOTIFY pgrst, 'reload schema';

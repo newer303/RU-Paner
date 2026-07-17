@@ -430,7 +430,10 @@ export default function App() {
                 plannerError={plannerError}
                 selectedCourses={selectedCourses}
                 removeCourseFromPlanner={removeCourseFromPlanner}
-                openManualCourseModal={() => setIsManualCourseModalOpen(true)}
+                openManualCourseModal={(course?: Course) => {
+                  if (course) setManualCourseData(course);
+                  setIsManualCourseModalOpen(true);
+                }}
                 calendarEvents={calendarEvents}
                 showToast={showToast}
                 syncRoadmapToPlanner={syncRoadmapToPlanner}

@@ -16,8 +16,17 @@ export interface Course {
   day: string;
   time: string;
   room: string;
+  lecDay?: string;
+  lecTime?: string;
+  lecRoom?: string;
+  labDay?: string;
+  labTime?: string;
+  labRoom?: string;
   examDate: string;
   examTime: string;
+  isFacultyExam?: boolean;
+  examMonthOnly?: boolean;
+  examMonth?: string;
 }
 
 export interface DegreeCategory {

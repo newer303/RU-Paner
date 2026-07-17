@@ -36,8 +36,17 @@ db.exec(`
     day TEXT,
     time TEXT,
     room TEXT,
+    lecDay TEXT,
+    lecTime TEXT,
+    lecRoom TEXT,
+    labDay TEXT,
+    labTime TEXT,
+    labRoom TEXT,
     examDate TEXT,
-    examTime TEXT
+    examTime TEXT,
+    isFacultyExam INTEGER DEFAULT 0,
+    examMonthOnly INTEGER DEFAULT 0,
+    examMonth TEXT
   );
 
   CREATE TABLE IF NOT EXISTS degree_categories (

@@ -120,13 +120,51 @@ export const ManualCourseModal: React.FC<ManualCourseModalProps> = ({
           </div>
           <div className="space-y-1.5">
             <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+              <BookOpen size={10} /> Lecture (LEC)
+            </label>
+            <input
+              type="text"
+              placeholder="เช่น จันทร์ 09:30 - 11:20"
+              className="w-full px-5 py-3.5 bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none text-sm font-bold text-gray-900 dark:text-zinc-100 transition-all"
+              value={`${formData.lecDay || ''}${formData.lecDay ? ' ' : ''}${formData.lecTime || ''}`.trim()}
+              onChange={e => {
+                const [lecDay, ...lecTimeParts] = e.target.value.split(' ');
+                setFormData({ ...formData, lecDay: lecDay || '', lecTime: lecTimeParts.join(' ').trim() });
+              }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
+              <BookOpen size={10} /> Lab (LAB)
+            </label>
+            <input
+              type="text"
+              placeholder="เช่น พุธ 13:30 - 15:20"
+              className="w-full px-5 py-3.5 bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none text-sm font-bold text-gray-900 dark:text-zinc-100 transition-all"
+              value={`${formData.labDay || ''}${formData.labDay ? ' ' : ''}${formData.labTime || ''}`.trim()}
+              onChange={e => {
+                const [labDay, ...labTimeParts] = e.target.value.split(' ');
+                setFormData({ ...formData, labDay: labDay || '', labTime: labTimeParts.join(' ').trim() });
+              }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em] ml-1">
               <Calendar size={10} /> วันที่สอบ (YYYY-MM-DD)
             </label>
             <input
               type="date"
-              className="w-full px-5 py-3.5 bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none text-sm font-bold text-gray-900 dark:text-zinc-100 transition-all"
+              disabled={formData.isFacultyExam}
+              className={`w-full px-5 py-3.5 bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none text-sm font-bold text-gray-900 dark:text-zinc-100 transition-all ${formData.isFacultyExam ? 'opacity-50 cursor-not-allowed' : ''}`}
               value={formData.examDate}
-              onChange={e => setFormData({ ...formData, examDate: e.target.value })}
+              onChange={e => {
+                const newDate = e.target.value;
+                setFormData({ 
+                  ...formData, 
+                  examDate: newDate,
+                  isFacultyExam: !newDate 
+                });
+              }}
             />
           </div>
           <div className="space-y-1.5">
@@ -141,6 +179,74 @@ export const ManualCourseModal: React.FC<ManualCourseModalProps> = ({
               <option value="เช้า (09:30-12:00)">เช้า (09:30-12:00)</option>
               <option value="บ่าย (14:00-16:30)">บ่าย (14:00-16:30)</option>
             </select>
+          </div>
+        </div>
+
+        {/* Exam Options */}
+        <div className="px-8 pb-6 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="h-[1px] flex-1 bg-gray-100 dark:bg-zinc-800"></div>
+            <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">ตัวเลือกการสอบ</span>
+            <div className="h-[1px] flex-1 bg-gray-100 dark:bg-zinc-800"></div>
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                checked={formData.isFacultyExam}
+                onChange={e => setFormData({ ...formData, isFacultyExam: e.target.checked, examDate: e.target.checked ? '' : formData.examDate })}
+              />
+              <div className="w-11 h-6 bg-gray-200 dark:bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </div>
+            <span className="text-xs font-bold text-gray-600 dark:text-zinc-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              คณะจัดสอบเอง (ยังไม่กำหนดวันสอบ)
+            </span>
+          </label>
+
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={formData.examMonthOnly}
+                  onChange={e => setFormData({ ...formData, examMonthOnly: e.target.checked })}
+                />
+                <div className="w-11 h-6 bg-gray-200 dark:bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </div>
+              <span className="text-xs font-bold text-gray-600 dark:text-zinc-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                ระบุเดือนสอบ (ถ้าทราบ)
+              </span>
+            </label>
+
+            {formData.examMonthOnly && (
+              <div className="pl-14 space-y-1.5 animate-fade-in">
+                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                  <Calendar size={10} /> เดือนที่สอบ
+                </label>
+                <select
+                  className="w-full px-5 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 dark:focus:border-blue-600 outline-none text-sm font-bold text-gray-900 dark:text-zinc-100 transition-all appearance-none"
+                  value={formData.examMonth || ''}
+                  onChange={e => setFormData({ ...formData, examMonth: e.target.value })}
+                >
+                  <option value="">เลือกเดือน...</option>
+                  <option value="มกราคม">มกราคม</option>
+                  <option value="กุมภาพันธ์">กุมภาพันธ์</option>
+                  <option value="มีนาคม">มีนาคม</option>
+                  <option value="เมษายน">เมษายน</option>
+                  <option value="พฤษภาคม">พฤษภาคม</option>
+                  <option value="มิถุนายน">มิถุนายน</option>
+                  <option value="กรกฎาคม">กรกฎาคม</option>
+                  <option value="สิงหาคม">สิงหาคม</option>
+                  <option value="กันยายน">กันยายน</option>
+                  <option value="ตุลาคม">ตุลาคม</option>
+                  <option value="พฤศจิกายน">พฤศจิกายน</option>
+                  <option value="ธันวาคม">ธันวาคม</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

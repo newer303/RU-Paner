@@ -41,6 +41,7 @@ export function useAppData() {
   const [searchQuery, setSearchQuery] = useState('');
   const [plannerError, setPlannerError] = useState('');
   const [isManualCourseModalOpen, setIsManualCourseModalOpen] = useState(false);
+  const [isEditingManualCourse, setIsEditingManualCourse] = useState(false);
   const [manualCourseData, setManualCourseData] = useState<Course>({
     code: '',
     name: '',
@@ -48,9 +49,34 @@ export function useAppData() {
     day: 'จันทร์',
     time: '09:30 - 11:20',
     room: '',
+    lecDay: '',
+    lecTime: '',
+    lecRoom: '',
+    labDay: '',
+    labTime: '',
+    labRoom: '',
     examDate: '',
-    examTime: 'เช้า (09:30-12:00)'
+    examTime: 'เช้า (09:30-12:00)',
+    isFacultyExam: false,
+    examMonthOnly: false,
+    examMonth: ''
   });
+
+  const openManualCourseModal = (course?: Course) => {
+    if (course) {
+      setManualCourseData(course);
+      setIsEditingManualCourse(true);
+    } else {
+      setManualCourseData({
+        code: '', name: '', credit: 3, day: 'จันทร์', time: '09:30 - 11:20',
+        room: '', lecDay: '', lecTime: '', lecRoom: '', labDay: '', labTime: '', labRoom: '',
+        examDate: '', examTime: 'เช้า (09:30-12:00)', 
+        isFacultyExam: false, examMonthOnly: false, examMonth: ''
+      });
+      setIsEditingManualCourse(false);
+    }
+    setIsManualCourseModalOpen(true);
+  };
 
   // Degree Plan State
   const [isDegreeEditMode, setIsDegreeEditMode] = useState(false);
@@ -156,8 +182,8 @@ export function useAppData() {
 
       const { calendar, courses, planner, settings, degree, roadmap } = results;
 
-      if (calendar) setCalendarEvents(calendar);
-      if (courses) {
+      if (calendar !== null) setCalendarEvents(calendar || []);
+      if (courses !== null) {
         setMr30Courses(courses);
         try {
           localStorage.setItem('mr30Courses', JSON.stringify(courses));
@@ -165,8 +191,8 @@ export function useAppData() {
           console.error('Failed to cache courses', e);
         }
       }
-      if (planner) setSelectedCourses(planner);
-      if (roadmap) setSemesterRoadmap(roadmap);
+      if (planner !== null) setSelectedCourses(planner || []);
+      if (roadmap !== null) setSemesterRoadmap(roadmap || []);
 
       if (settings) {
         if (settings.notifyLine !== undefined) setNotifyLine(settings.notifyLine === 'true');
@@ -471,7 +497,15 @@ const syncRoadmapToPlanner = async (semesterId: string) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(manualCourseData),
       });
-      if (!resCourse.ok) throw new Error('Failed to save course details');
+      const courseText = await resCourse.text();
+      let courseData: any = null;
+      try {
+        courseData = courseText ? JSON.parse(courseText) : null;
+      } catch (parseError) {
+        console.error('Non-JSON response from /api/courses:', courseText);
+        throw new Error(`Unexpected server response: ${courseText.slice(0, 200)}`);
+      }
+      if (!resCourse.ok) throw new Error(courseData?.details || courseData?.error || `Failed to save course (${resCourse.status})`);
 
       // 2. Add to planner
       const resPlanner = await fetch('/api/planner', {
@@ -488,7 +522,9 @@ const syncRoadmapToPlanner = async (semesterId: string) => {
       // Reset form
       setManualCourseData({
         code: '', name: '', credit: 3, day: 'จันทร์', time: '09:30 - 11:20',
-        room: '', examDate: '', examTime: 'เช้า (09:30-12:00)'
+        room: '', lecDay: '', lecTime: '', lecRoom: '', labDay: '', labTime: '', labRoom: '',
+        examDate: '', examTime: 'เช้า (09:30-12:00)', 
+        isFacultyExam: false, examMonthOnly: false, examMonth: ''
       });
     } catch (err) {
       console.error(err);

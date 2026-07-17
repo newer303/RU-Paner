@@ -5,7 +5,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 
 interface CoursesTabProps {
   courses: Course[];
-  onCourseAdded?: () => void;
+  onCourseAdded?: () => Promise<void>;
   showToast?: (msg: string) => void;
   addCourseToPlanner?: (course: Course) => void;
   selectedCourses?: Course[];
@@ -90,19 +90,30 @@ export const CoursesTab = ({
     code: '',
     name: '',
     credit: 3,
-    day: 'จันทร์',
-    time: '09:30 - 11:20',
+    day: '',
+    time: '',
     room: '',
+    lecDay: '',
+    lecTime: '',
+    lecRoom: '',
+    labDay: '',
+    labTime: '',
+    labRoom: '',
     examDate: '',
-    examTime: 'เช้า (09:30-12:00)'
+    examTime: 'เช้า (09:30-12:00)',
+    isFacultyExam: false,
+    examMonthOnly: false,
+    examMonth: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenAddModal = () => {
     setIsEditing(false);
     setFormData({
-      code: '', name: '', credit: 3, day: 'จันทร์', time: '09:30 - 11:20',
-      room: '', examDate: '', examTime: 'เช้า (09:30-12:00)'
+      code: '', name: '', credit: 3, day: '', time: '',
+      room: '', lecDay: '', lecTime: '', lecRoom: '', labDay: '', labTime: '', labRoom: '',
+      examDate: '', examTime: 'เช้า (09:30-12:00)',
+      isFacultyExam: false, examMonthOnly: false, examMonth: ''
     });
     setIsModalOpen(true);
   };
@@ -132,15 +143,26 @@ export const CoursesTab = ({
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = null;
+
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (parseError) {
+        console.error('Non-JSON response from /api/courses:', text);
+        throw new Error(`Unexpected server response: ${text.slice(0, 200)}`);
+      }
 
       if (!res.ok) {
-        throw new Error(data.details || data.error || 'Failed to save course');
+        throw new Error(data?.details || data?.error || `Failed to save course (${res.status})`);
       }
       
+      console.log('Save response successful:', data);
       setIsModalOpen(false);
       if (showToast) showToast(isEditing ? `อัปเดตวิชา ${formData.code} แล้ว` : `เพิ่มวิชา ${formData.code} เรียบร้อยแล้ว`);
-      if (onCourseAdded) onCourseAdded();
+      
+      // Explicitly trigger a refresh of the entire data set
+      if (onCourseAdded) await onCourseAdded();
     } catch (err: any) {
       console.error(err);
       if (showToast) showToast(`เกิดข้อผิดพลาด: ${err.message}`);
@@ -162,7 +184,7 @@ export const CoursesTab = ({
       
       setIsDeleteModalOpen(false);
       setCourseToDelete(null);
-      if (onCourseAdded) onCourseAdded();
+      if (onCourseAdded) await onCourseAdded();
     } catch (err) {
       console.error(err);
       alert('เกิดข้อผิดพลาดในการลบข้อมูล');
@@ -207,7 +229,7 @@ export const CoursesTab = ({
       
       alert(`นำเข้าสำเร็จ ${extractedCourses.length} รายวิชา!`);
       setExtractedCourses([]);
-      if (onCourseAdded) onCourseAdded();
+      if (onCourseAdded) await onCourseAdded();
     } catch (err) {
       console.error(err);
       alert('เกิดข้อผิดพลาดในการนำเข้าข้อมูล');
@@ -377,33 +399,61 @@ export const CoursesTab = ({
                     
                     <h4 className="font-bold text-gray-900 dark:text-zinc-100 mb-4 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors pr-10">{course.name}</h4>
                     
-                    <div className="grid grid-cols-2 gap-y-3">
-                      <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
-                        <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-blue-500 dark:text-blue-400">
-                          <Clock size={12} />
-                        </div>
-                        <span>{course.day || '-'} {course.time || ''}</span>
-                      </div>
+                    <div className="grid grid-cols-1 gap-y-3">
+                      {((course.lecDay || course.lecTime || course.lecRoom) || (course.labDay || course.labTime || course.labRoom)) ? (
+                        <>
+                          {(course.lecDay || course.lecTime || course.lecRoom) && (
+                            <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
+                              <div className="p-1.5 bg-blue-50 dark:bg-blue-900 rounded-lg text-blue-500 dark:text-blue-300">
+                                LEC
+                              </div>
+                              <span className="truncate">
+                                {course.lecDay || ''}{course.lecDay && course.lecTime ? ' ' : ''}{course.lecTime || ''}{course.lecRoom ? ` • ${course.lecRoom}` : ''}
+                              </span>
+                            </div>
+                          )}
+                          {(course.labDay || course.labTime || course.labRoom) && (
+                            <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
+                              <div className="p-1.5 bg-amber-50 dark:bg-amber-900 rounded-lg text-amber-500 dark:text-amber-300">
+                                LAB
+                              </div>
+                              <span className="truncate">
+                                {course.labDay || ''}{course.labDay && course.labTime ? ' ' : ''}{course.labTime || ''}{course.labRoom ? ` • ${course.labRoom}` : ''}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
+                            <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-blue-500 dark:text-blue-400">
+                              <Clock size={12} />
+                            </div>
+                            <span>{course.day || '-'} {course.time || ''}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
+                            <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-green-500 dark:text-green-400">
+                              <MapPin size={12} />
+                            </div>
+                            <span className="truncate">{course.room || '-'}</span>
+                          </div>
+                        </>
+                      )}
                       
-                      <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
-                        <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-green-500 dark:text-green-400">
-                          <MapPin size={12} />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium col-span-2">
+                          <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-orange-500 dark:text-orange-400">
+                            <Calendar size={12} />
+                          </div>
+                          <span className="truncate">
+                            สอบ: {course.isFacultyExam
+                              ? 'คณะจัดสอบเอง'
+                              : course.examMonthOnly
+                                ? `เดือน ${course.examMonth || 'ยังไม่ระบุ'}`
+                                : (course.examDate || 'ไม่มีข้อมูลสอบ')}
+                            {course.isFacultyExam ? '' : ` เวลา ${course.examTime || '-'}`}
+                          </span>
                         </div>
-                        <span className="truncate">{course.room || '-'}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
-                        <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-orange-500 dark:text-orange-400">
-                          <Calendar size={12} />
-                        </div>
-                        <span>{course.examDate || 'ไม่มีข้อมูลสอบ'}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-zinc-400 font-medium">
-                        <div className="p-1.5 bg-gray-50 dark:bg-zinc-800 rounded-lg text-purple-500 dark:text-purple-400">
-                          <Info size={12} />
-                        </div>
-                        <span>{course.examTime || '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -462,47 +512,105 @@ export const CoursesTab = ({
                   onChange={e => setFormData({ ...formData, credit: parseInt(e.target.value) || 0 })}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">วันเรียน</label>
-                <select
-                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
-                  value={formData.day}
-                  onChange={e => setFormData({ ...formData, day: e.target.value })}
-                >
-                  <option value="จันทร์">จันทร์</option>
-                  <option value="อังคาร">อังคาร</option>
-                  <option value="พุธ">พุธ</option>
-                  <option value="พฤหัสบดี">พฤหัสบดี</option>
-                  <option value="ศุกร์">ศุกร์</option>
-                  <option value="เสาร์">เสาร์</option>
-                  <option value="อาทิตย์">อาทิตย์</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">เวลาเรียน</label>
-                <input
-                  type="text"
-                  placeholder="เช่น 09:30 - 11:20"
-                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
-                  value={formData.time}
-                  onChange={e => setFormData({ ...formData, time: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">ห้องเรียน</label>
-                <input
-                  type="text"
-                  placeholder="เช่น KTB 201"
-                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
-                  value={formData.room}
-                  onChange={e => setFormData({ ...formData, room: e.target.value })}
-                />
+              <div className="md:col-span-2 grid grid-cols-1 gap-4">
+                <div className="rounded-2xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 dark:text-zinc-400">Lecture (LEC)</span>
+                    <span className="text-[10px] text-gray-400">ถ้ามี</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">วันเรียน LEC</label>
+                      <select
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        value={formData.lecDay || ''}
+                        onChange={e => setFormData({ ...formData, lecDay: e.target.value })}
+                      >
+                        <option value="">ไม่ระบุ</option>
+                        <option value="จันทร์">จันทร์</option>
+                        <option value="อังคาร">อังคาร</option>
+                        <option value="พุธ">พุธ</option>
+                        <option value="พฤหัสบดี">พฤหัสบดี</option>
+                        <option value="ศุกร์">ศุกร์</option>
+                        <option value="เสาร์">เสาร์</option>
+                        <option value="อาทิตย์">อาทิตย์</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">เวลาเรียน LEC</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น 09:30 - 11:20"
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        value={formData.lecTime || ''}
+                        onChange={e => setFormData({ ...formData, lecTime: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">ห้องเรียน LEC</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น KTB 201"
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        value={formData.lecRoom || ''}
+                        onChange={e => setFormData({ ...formData, lecRoom: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-500 dark:text-zinc-400">Lab (LAB)</span>
+                    <span className="text-[10px] text-gray-400">ถ้ามี</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">วันเรียน LAB</label>
+                      <select
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        value={formData.labDay || ''}
+                        onChange={e => setFormData({ ...formData, labDay: e.target.value })}
+                      >
+                        <option value="">ไม่ระบุ</option>
+                        <option value="จันทร์">จันทร์</option>
+                        <option value="อังคาร">อังคาร</option>
+                        <option value="พุธ">พุธ</option>
+                        <option value="พฤหัสบดี">พฤหัสบดี</option>
+                        <option value="ศุกร์">ศุกร์</option>
+                        <option value="เสาร์">เสาร์</option>
+                        <option value="อาทิตย์">อาทิตย์</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">เวลาเรียน LAB</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น 13:30 - 15:20"
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        value={formData.labTime || ''}
+                        onChange={e => setFormData({ ...formData, labTime: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">ห้องเรียน LAB</label>
+                      <input
+                        type="text"
+                        placeholder="เช่น LAB 101"
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                        value={formData.labRoom || ''}
+                        onChange={e => setFormData({ ...formData, labRoom: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">วันที่สอบ (YYYY-MM-DD)</label>
                 <input
                   type="date"
-                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                  disabled={formData.isFacultyExam}
+                  className={`w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 ${formData.isFacultyExam ? 'bg-gray-50 dark:bg-zinc-900 text-gray-500 dark:text-zinc-500 cursor-not-allowed' : ''}`}
                   value={formData.examDate}
                   onChange={e => setFormData({ ...formData, examDate: e.target.value })}
                 />
@@ -517,6 +625,58 @@ export const CoursesTab = ({
                   <option value="เช้า (09:30-12:00)">เช้า (09:30-12:00)</option>
                   <option value="บ่าย (14:00-16:30)">บ่าย (14:00-16:30)</option>
                 </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-3 cursor-pointer group mb-3">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={formData.isFacultyExam}
+                    onChange={e => setFormData({ ...formData, isFacultyExam: e.target.checked, examDate: e.target.checked ? '' : formData.examDate })}
+                  />
+                  <span className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-sm font-bold text-gray-700 dark:text-zinc-300 transition-colors peer-checked:bg-blue-600 peer-checked:text-white">
+                    <span className="w-3 h-3 rounded-full bg-blue-600"></span>
+                    คณะจัดสอบเอง
+                  </span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer group mb-3">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                    checked={formData.examMonthOnly}
+                    onChange={e => setFormData({ ...formData, examMonthOnly: e.target.checked })}
+                  />
+                  <span className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-sm font-bold text-gray-700 dark:text-zinc-300 transition-colors peer-checked:bg-blue-600 peer-checked:text-white">
+                    <span className="w-3 h-3 rounded-full bg-blue-600"></span>
+                    ระบุเดือนสอบ (ถ้าทราบ)
+                  </span>
+                </label>
+
+                {formData.examMonthOnly && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase mb-1 ml-1">เดือนที่สอบ</label>
+                    <select
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100"
+                      value={formData.examMonth || ''}
+                      onChange={e => setFormData({ ...formData, examMonth: e.target.value })}
+                    >
+                      <option value="">เลือกเดือน...</option>
+                      <option value="มกราคม">มกราคม</option>
+                      <option value="กุมภาพันธ์">กุมภาพันธ์</option>
+                      <option value="มีนาคม">มีนาคม</option>
+                      <option value="เมษายน">เมษายน</option>
+                      <option value="พฤษภาคม">พฤษภาคม</option>
+                      <option value="มิถุนายน">มิถุนายน</option>
+                      <option value="กรกฎาคม">กรกฎาคม</option>
+                      <option value="สิงหาคม">สิงหาคม</option>
+                      <option value="กันยายน">กันยายน</option>
+                      <option value="ตุลาคม">ตุลาคม</option>
+                      <option value="พฤศจิกายน">พฤศจิกายน</option>
+                      <option value="ธันวาคม">ธันวาคม</option>
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
             <div className="px-6 py-4 bg-gray-50 dark:bg-zinc-800/50 border-t border-gray-200 dark:border-zinc-800 flex gap-3">
