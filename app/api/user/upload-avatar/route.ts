@@ -4,14 +4,21 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { createClient } from '@supabase/supabase-js';
 
 // Create admin client for storage operations
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabaseAdmin = supabaseUrl && supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export async function POST(req: Request) {
   console.log('--- Upload API Started ---');
   try {
+    if (!supabaseAdmin) {
+      console.error('Supabase Admin client not initialized. Check SUPABASE_SERVICE_ROLE_KEY');
+      return NextResponse.json({ message: 'Supabase not configured properly' }, { status: 500 });
+    }
+
     const session = await getServerSession(authOptions);
     console.log('Session check:', !!session);
     

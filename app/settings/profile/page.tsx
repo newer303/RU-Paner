@@ -40,7 +40,9 @@ export default function EditProfilePage() {
         setProfileStatus('success');
         setProfileMessage('อัปเดตข้อมูลสำเร็จ');
 
-        console.log("Attempting to update session with state:", { name, image });
+        console.log("Updating session with:", { name, image });
+
+        // Update session
         const result = await updateSession({ 
           ...session, 
           user: { 
@@ -50,14 +52,14 @@ export default function EditProfilePage() {
           } 
         });
 
-        console.log("Session update complete, result:", result);
+        console.log("Session update result:", result);
 
-        // Force reload session to get the latest data
-        await fetch('/api/auth/session');
-        router.refresh();
+        // Force refresh the page to ensure data is fetched fresh from the server
+        window.location.reload(); 
       } else {
+        const errorData = await response.json();
         setProfileStatus('error');
-        setProfileMessage(data.message || 'เกิดข้อผิดพลาด');
+        setProfileMessage(errorData.message || 'เกิดข้อผิดพลาดในการบันทึก');
       }
     } catch (err) {
       setProfileStatus('error');

@@ -27,7 +27,6 @@ import { EventModal } from '@/components/modals/EventModal';
 import { DeleteConfirmModal } from '@/components/modals/DeleteConfirmModal';
 import { AddCourseModal } from '@/components/modals/AddCourseModal';
 import { AddCategoryModal } from '@/components/modals/AddCategoryModal';
-import { ManualCourseModal } from '@/components/modals/ManualCourseModal';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -575,13 +574,6 @@ export default function App() {
         onConfirm={confirmAddCategory}
         categoryName={newCategoryName}
         setCategoryName={setNewCategoryName}
-      />
-      <ManualCourseModal
-        isOpen={isManualCourseModalOpen}
-        onClose={() => setIsManualCourseModalOpen(false)}
-        formData={manualCourseData}
-        setFormData={setManualCourseData}
-        onSave={handleSaveManualCourse}
       />
     </div>
   );

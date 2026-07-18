@@ -6,7 +6,7 @@ export const generateICS = (courses: Course[], events: CalendarEvent[]): string 
   let icsLines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//RU Planner//TH',
+    'PRODID:-//Planner//TH',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH'
   ];

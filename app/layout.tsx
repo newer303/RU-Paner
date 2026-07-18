@@ -4,13 +4,13 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "RU Planner",
-  description: "ระบบจัดการตารางเรียนและหลักสูตร มหาวิทยาลัยรามคำแหง",
+  title: "Planner",
+  description: "ระบบจัดการตารางเรียนและหลักสูตร",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "RU Planner",
+    title: "Planner",
   },
 };
 

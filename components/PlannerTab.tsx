@@ -280,11 +280,6 @@ export const PlannerTab = ({
              <div className="space-y-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-black text-gray-900 dark:text-zinc-100 uppercase tracking-tight">รายวิชาที่ลงทะเบียน</h3>
-                <div className="flex gap-2">
-                  <button onClick={() => openManualCourseModal()} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 hover:bg-gray-50 dark:hover:bg-zinc-800 px-6 py-2.5 rounded-2xl text-xs font-black uppercase flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95">
-                        <Plus size={16} /> Add Custom
-                  </button>
-                </div>
               </div>
               
               {/* Search Bar */}
@@ -321,9 +316,6 @@ export const PlannerTab = ({
                       <p className="text-xs text-gray-500 font-bold">{course.name}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => openManualCourseModal(course)} className="text-blue-500 p-2 hover:bg-blue-50 rounded-lg">
-                        <Edit2 size={18} />
-                      </button>
                       <button onClick={() => removeCourseFromPlanner(course.code)} className="text-red-500 p-2 hover:bg-red-50 rounded-lg">
                         <X size={18} />
                       </button>

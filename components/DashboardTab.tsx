@@ -33,7 +33,6 @@ export const DashboardTab = ({
 }: DashboardTabProps) => {
   const sessionData = useSession();
   const session = sessionData?.data;
-  console.log("DashboardTab received session:", session);
   const displayName = session?.user?.name || userName || 'Student';
   
   const progressPercent = useMemo(() => {
@@ -106,7 +105,6 @@ export const DashboardTab = ({
                     )}
                 </div>
                 <div>
-                    <span className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-blue-200">Welcome Back,</span>
                     <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight mt-1">
                         {displayName}
                     </h1>
