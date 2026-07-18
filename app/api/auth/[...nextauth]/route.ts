@@ -34,9 +34,13 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+      }
+      if (trigger === "update" && session) {
+        token.name = session.user.name;
+        token.picture = session.user.image;
       }
       return token;
     },
@@ -44,6 +48,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         // We cast token to any here to satisfy TS if the augmentation still isn't fully registered by the IDE
         session.user.id = (token as any).id;
+        session.user.name = token.name || session.user.name;
+        session.user.image = (token.picture as string) || session.user.image;
       }
       return session;
     }

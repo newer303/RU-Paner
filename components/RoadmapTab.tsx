@@ -101,22 +101,22 @@ export const RoadmapTab = ({
 
       {/* Compact Add Semester UI */}
       {isAddingSemester && (
-        <div className="bg-slate-900 dark:bg-blue-600 p-6 rounded-3xl text-white shadow-xl animate-scale-up relative overflow-hidden">
-          <div className="relative z-10 space-y-4">
-            <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
-              <Calendar size={18} /> เพิ่มเทอมใหม่
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-2 whitespace-nowrap">
+              <Calendar size={16} /> เทอมใหม่
             </h3>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input 
-                type="text" 
-                placeholder="เช่น 2/2568"
-                className="flex-1 bg-white/10 border border-white/20 rounded-xl px-5 py-3 outline-none focus:ring-2 focus:ring-white/30 placeholder-white/30 font-bold"
-                value={newSemesterId}
-                onChange={(e) => setNewSemesterId(e.target.value)}
-                autoFocus
-              />
-              <button onClick={handleAddSemester} className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-50 transition-all">Create Plan</button>
-              <button onClick={() => setIsAddingSemester(false)} className="px-4 py-3 font-bold text-sm text-white/60 hover:text-white">Cancel</button>
+            <input 
+              type="text" 
+              placeholder="เช่น 2/2568"
+              className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-900 dark:text-white"
+              value={newSemesterId}
+              onChange={(e) => setNewSemesterId(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button onClick={handleAddSemester} className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 active:scale-95">สร้าง</button>
+              <button onClick={() => setIsAddingSemester(false)} className="px-4 py-3 font-bold text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">ยกเลิก</button>
             </div>
           </div>
         </div>
