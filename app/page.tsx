@@ -153,7 +153,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: 'ทดสอบระบบ',
-          message: 'นี่คือตัวอย่างการแจ้งเตือนจาก RU Planner'
+          message: 'นี่คือตัวอย่างการแจ้งเตือนจาก Planner'
         }),
       });
     } catch (err) {
@@ -180,7 +180,7 @@ export default function App() {
           </div>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <h2 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">RU Planner</h2>
+          <h2 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">Planner</h2>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Initializing System...</p>
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function App() {
           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
             <Sparkles className="text-white" size={18} />
           </div>
-          <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">RU Planner</h1>
+          <h1 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">Planner</h1>
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
@@ -239,7 +239,7 @@ export default function App() {
                   <Sparkles className="text-white" size={18} />
                 </div>
                 <div>
-                  <h1 className="text-lg font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">RU Planner</h1>
+                  <h1 className="text-lg font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">Planner</h1>
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Cloud Sync Active</span>
@@ -304,7 +304,7 @@ export default function App() {
               active={activeTab === 'calendar'}
               onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
               icon={<Calendar size={20} />}
-              label="ปฏิทินสอบ ม.รามฯ"
+              label="ปฏิทินสอบและกิจกรรม"
               className="w-full justify-start py-3.5 px-5 rounded-2xl transition-all hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm hover:shadow-md"
             />
             <NavButton

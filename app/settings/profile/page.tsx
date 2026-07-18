@@ -25,6 +25,8 @@ export default function EditProfilePage() {
     setProfileStatus('loading');
     setProfileMessage('');
 
+    console.log("Submitting profile update:", { name, image });
+
     try {
       const response = await fetch('/api/user/update-profile', {
         method: 'POST',
@@ -37,7 +39,22 @@ export default function EditProfilePage() {
       if (response.ok) {
         setProfileStatus('success');
         setProfileMessage('อัปเดตข้อมูลสำเร็จ');
-        await updateSession({ ...session, user: { ...session?.user, name, image } });
+
+        console.log("Attempting to update session with state:", { name, image });
+        const result = await updateSession({ 
+          ...session, 
+          user: { 
+            ...session?.user, 
+            name, 
+            image 
+          } 
+        });
+
+        console.log("Session update complete, result:", result);
+
+        // Force reload session to get the latest data
+        await fetch('/api/auth/session');
+        router.refresh();
       } else {
         setProfileStatus('error');
         setProfileMessage(data.message || 'เกิดข้อผิดพลาด');

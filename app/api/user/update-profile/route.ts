@@ -17,15 +17,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'กรุณากรอกชื่อผู้ใช้งาน' }, { status: 400 });
     }
 
-    const { error: updateError } = await supabase
+    console.log('Updating user:', session.user.email, 'with:', { name, image });
+
+    const { data, error: updateError } = await supabase
       .from('users')
       .update({ name, image })
-      .eq('email', session.user.email);
+      .eq('email', session.user.email)
+      .select();
 
     if (updateError) {
-      console.error('Update profile error:', updateError);
-      return NextResponse.json({ message: 'ไม่สามารถอัปเดตข้อมูลโปรไฟล์ได้' }, { status: 500 });
+      console.error('Update profile error details:', JSON.stringify(updateError, null, 2));
+      return NextResponse.json({ message: 'ไม่สามารถอัปเดตข้อมูลโปรไฟล์ได้', details: updateError.message }, { status: 500 });
     }
+
+    console.log('Update result data:', data);
 
     return NextResponse.json({ message: 'อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว' }, { status: 200 });
 

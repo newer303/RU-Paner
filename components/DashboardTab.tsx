@@ -31,7 +31,10 @@ export const DashboardTab = ({
   deferredPrompt,
   onInstall
 }: DashboardTabProps) => {
-  const { data: session } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  console.log("DashboardTab received session:", session);
+  const displayName = session?.user?.name || userName || 'Student';
   
   const progressPercent = useMemo(() => {
     if (!degreePlan.totalCredits) return 0;
@@ -99,13 +102,13 @@ export const DashboardTab = ({
                     {session?.user?.image ? (
                         <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                        <span className="text-2xl font-black">{userName?.[0]?.toUpperCase() || 'S'}</span>
+                        <span className="text-2xl font-black">{displayName[0]?.toUpperCase() || 'S'}</span>
                     )}
                 </div>
                 <div>
                     <span className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-blue-200">Welcome Back,</span>
                     <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight mt-1">
-                        {userName || 'Student'}
+                        {displayName}
                     </h1>
                 </div>
             </div>
