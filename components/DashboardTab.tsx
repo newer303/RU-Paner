@@ -96,16 +96,16 @@ export const DashboardTab = ({
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
           
           <div className="relative z-10 flex flex-col h-full justify-between">
-            <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white shadow-inner overflow-hidden">
+            <div className="flex flex-col items-center gap-5 mb-8 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-left">
+                <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border-4 border-white/20 text-white shadow-2xl shadow-blue-900/50 overflow-hidden flex-shrink-0 transition-transform duration-300 hover:scale-105">
                     {session?.user?.image ? (
                         <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                        <span className="text-2xl font-black">{displayName[0]?.toUpperCase() || 'S'}</span>
+                        <span className="text-4xl sm:text-3xl font-black">{displayName[0]?.toUpperCase() || 'S'}</span>
                     )}
                 </div>
-                <div>
-                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight mt-1">
+                <div className="space-y-1">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
                         {displayName}
                     </h1>
                 </div>
