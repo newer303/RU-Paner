@@ -186,8 +186,13 @@ export default function App() {
     );
   }
 
+  React.useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
   if (status === 'unauthenticated') {
-    router.push('/login');
     return null;
   }
 

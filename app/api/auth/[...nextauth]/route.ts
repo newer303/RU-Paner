@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import db from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
 // Define the interface locally just in case the types file isn't being picked up
@@ -23,11 +23,27 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(credentials.email) as any;
-        if (!user || !user.password) return null;
+        const { data: user, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', credentials.email)
+          .single();
+
+        if (error || !user) { 
+          console.log("Auth error: User not found or Supabase error", credentials.email, error); 
+          return null; 
+        } 
+        
+        if (!user.password) { 
+          console.log("Auth error: User has no password", credentials.email); 
+          return null; 
+        }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isPasswordValid) return null;
+        if (!isPasswordValid) { 
+          console.log("Auth error: Password invalid", credentials.email); 
+          return null; 
+        }
 
         return { id: user.id, name: user.name, email: user.email };
       }
