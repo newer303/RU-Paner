@@ -14,8 +14,9 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignore navigation requests (main page load) to bypass redirect errors
+  // Use a Network-First strategy for navigation requests to ensure the page loads
   if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request, { redirect: 'follow' }));
     return;
   }
 
