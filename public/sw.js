@@ -18,7 +18,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/api/')) {
     if (event.request.method === 'GET') {
       event.respondWith(
-        fetch(event.request)
+        fetch(event.request, { redirect: 'follow' })
           .then((response) => {
             const clonedResponse = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -31,13 +31,13 @@ self.addEventListener('fetch', (event) => {
           })
       );
     } else {
-      event.respondWith(fetch(event.request));
+      event.respondWith(fetch(event.request, { redirect: 'follow' }));
     }
   } else {
     // Static assets
     event.respondWith(
       caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
+        return response || fetch(event.request, { redirect: 'follow' });
       })
     );
   }
