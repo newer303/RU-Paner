@@ -14,15 +14,17 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Ignore navigation requests (main page load) to bypass redirect errors
+  if (event.request.mode === 'navigate') {
+    return;
+  }
+
   // Check if it's an API call
   if (event.request.url.includes('/api/')) {
     if (event.request.method === 'GET') {
       event.respondWith(
         fetch(event.request, { redirect: 'manual' })
           .then((response) => {
-            // If it's a redirect, we can't do much in SW with manual mode, 
-            // but returning the response object itself often avoids the "network error"
-            // that happens when the browser tries to follow a redirect automatically.
             return response;
           })
           .catch(() => {
