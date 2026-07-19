@@ -18,12 +18,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/api/')) {
     if (event.request.method === 'GET') {
       event.respondWith(
-        fetch(event.request, { redirect: 'follow' })
+        fetch(event.request, { redirect: 'manual' })
           .then((response) => {
-            const clonedResponse = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, clonedResponse);
-            });
+            // If it's a redirect, we can't do much in SW with manual mode, 
+            // but returning the response object itself often avoids the "network error"
+            // that happens when the browser tries to follow a redirect automatically.
             return response;
           })
           .catch(() => {
@@ -31,13 +30,13 @@ self.addEventListener('fetch', (event) => {
           })
       );
     } else {
-      event.respondWith(fetch(event.request, { redirect: 'follow' }));
+      event.respondWith(fetch(event.request, { redirect: 'manual' }));
     }
   } else {
     // Static assets
     event.respondWith(
       caches.match(event.request).then((response) => {
-        return response || fetch(event.request, { redirect: 'follow' });
+        return response || fetch(event.request, { redirect: 'manual' });
       })
     );
   }
